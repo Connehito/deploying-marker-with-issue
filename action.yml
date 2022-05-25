@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'deploying-marker-with-issue'
+description: 'This action checks, applies and removes the "Deploying" label of GitHub Issue that indicating the deployment status.'
+author: 'Connehito'
 inputs:
-  milliseconds: # change this
+  action:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'check-marker, add-marker or remove-marker'
+  issue-number:
+    required: true
+    description: '(TODO)'
 runs:
   using: 'node16'
   main: 'dist/index.js'
