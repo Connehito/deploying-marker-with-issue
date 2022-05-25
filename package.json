@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
-  "version": "0.0.0",
+  "name": "deploying-marker-with-issue",
+  "version": "0.0.1",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "This action checks, applies and removes the \"Deploying\" label of GitHub Issue that indicating the deployment status.",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
@@ -15,14 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/Connehito/deploying-marker-with-issue.git"
   },
   "keywords": [
-    "actions",
-    "node",
-    "setup"
+    "deployment"
   ],
-  "author": "",
+  "author": "Connehito",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.8.2"
