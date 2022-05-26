@@ -5,7 +5,7 @@ jobs:
   example: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
-      - uses: Connehito/deploying-marker-with-issue@main
+      - uses: Connehito/deploying-marker-with-issue@experiment-example-workflow
         with:
           action: "check-marker"
           issue-number: 12
