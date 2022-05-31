@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import {getInput} from './common/input'
-import {addMarker} from './actions/add_marker'
-import {checkMarker} from './actions/check_marker'
-import {removeMarker} from './actions/remove_marker'
+import {addMarker} from './actions/add-marker'
+import {checkMarker} from './actions/check-marker'
+import {removeMarker} from './actions/remove-marker'
 
 const run = async (): Promise<void> => {
   try {
