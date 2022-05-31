@@ -4,7 +4,7 @@ author: 'Connehito'
 inputs:
   action:
     required: true
-    description: 'Specify `check-marker`, `add-marker` or `remove-marker`'
+    description: 'Specify `check-marker-attached`, `check-marker-detached`, `add-marker` or `remove-marker`'
   issue-number:
     required: true
     description: 'The issue number of the GitHub Issue for labeling'

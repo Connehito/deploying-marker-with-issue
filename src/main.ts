@@ -1,21 +1,25 @@
 import * as core from '@actions/core'
 import {getInput} from './common/input'
-import {addMarker} from './actions/add-marker'
-import {checkMarker} from './actions/check-marker'
-import {removeMarker} from './actions/remove-marker'
+import {attachMarker} from './actions/attach-marker'
+import {checkMarkerExists} from './actions/check-marker-exists'
+import {checkMarkerNotExists} from './actions/check-marker-not-exists'
+import {detachMarker} from './actions/detach-marker'
 
 const run = async (): Promise<void> => {
   try {
     const input = getInput()
     switch (input.action) {
-      case 'check-marker':
-        await checkMarker(input)
+      case 'check-marker-attached':
+        await checkMarkerExists(input)
         break
-      case 'add-marker':
-        await addMarker(input)
+      case 'check-marker-detached':
+        await checkMarkerNotExists(input)
         break
-      case 'remove-marker':
-        await removeMarker(input)
+      case 'attach-marker':
+        await attachMarker(input)
+        break
+      case 'detach-marker':
+        await detachMarker(input)
         break
       default:
         core.setFailed(`Undefined action: ${input.action}`)
