@@ -9,3 +9,13 @@ jobs:
         with:
           action: "check-marker"
           issue-number: 12
+      - uses: Connehito/deploying-marker-with-issue@main
+        with:
+          action: "add-marker"
+          issue-number: 12
+          exit-with-error-if-label-already-exists: false
+      - uses: Connehito/deploying-marker-with-issue@main
+        with:
+          action: "remove-marker"
+          issue-number: 12
+          exit-with-error-if-label-not-exists: false
