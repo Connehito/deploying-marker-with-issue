@@ -43,9 +43,9 @@ const core = __importStar(__nccwpck_require__(186));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const action = core.getInput('action');
-            const issueNumber = parseInt(core.getInput('issue-number'), 10);
-            core.debug(`DEBUG: ${JSON.stringify({ action, issueNumber })}`);
+            const action = core.getInput('action', { required: true });
+            const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
+            core.info(`DEBUG: ${JSON.stringify({ action, issueNumber })}`);
         }
         catch (error) {
             if (error instanceof Error) {
