@@ -1,12 +1,5 @@
 import fetch, {Response} from 'node-fetch'
-import Ajv from 'ajv'
-import {FromSchema, JSONSchema} from 'json-schema-to-ts'
-
-const getEnvVar = (name: string): string => {
-  const value = process.env[name]
-  if (!value) throw new Error(`Missing environment variable ${name}`)
-  return value
-}
+import {getEnvVar} from '../common/env'
 
 export const fetchGitHubGraphQL = async (
   query: string,
@@ -15,7 +8,7 @@ export const fetchGitHubGraphQL = async (
   const response = await fetch('https://api.github.com/graphql', {
     method: 'POST',
     headers: {
-      Authorization: `token ${getEnvVar('GITHUB_PERSONAL_ACCESS_TOKEN')}`
+      Authorization: `token ${getEnvVar('GITHUB_TOKEN')}`
     },
     body: JSON.stringify({query, variables})
   })
@@ -37,7 +30,7 @@ export const fetchGitHubApiV3 = async (
     method,
     headers: {
       Accept: 'application/vnd.github.v3+json',
-      Authorization: `token ${getEnvVar('GITHUB_PERSONAL_ACCESS_TOKEN')}`
+      Authorization: `token ${getEnvVar('GITHUB_TOKEN')}`
     },
     body
   })
@@ -48,17 +41,4 @@ export const fetchGitHubApiV3 = async (
       }`
     )
   return response
-}
-
-const ajv = new Ajv({allErrors: true})
-export const buildValidator = <T extends JSONSchema>(
-  schema: T
-): ((params: unknown) => FromSchema<T>) => {
-  const validate = ajv.compile(schema)
-  return (params: unknown): FromSchema<T> => {
-    if (validate(params)) {
-      return params as FromSchema<T>
-    }
-    throw new Error(`Schema Error: ${JSON.stringify(validate.errors)}`)
-  }
 }

@@ -1,10 +1,11 @@
-import {buildValidator, fetchGitHubApiV3} from './common'
+import {fetchGitHubApiV3} from './common'
 import {FromSchema} from 'json-schema-to-ts'
 import {
   DefaultLabelColor,
   DefaultLabelDescription,
   LabelName
 } from '../common/label'
+import {buildValidator} from '../common/validater'
 
 // https://docs.github.com/ja/rest/issues/labels#create-a-label
 const Schema = {

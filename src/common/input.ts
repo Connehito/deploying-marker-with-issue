@@ -4,6 +4,9 @@ export interface Input {
   action: string
   issueNumber: number
   exitWithError: boolean
+  repoOwner: string
+  repoName: string
+  commitHash: string
 }
 
 export const getInput = (): Input => {
@@ -16,5 +19,8 @@ export const getInput = (): Input => {
     required: false
   })
 
-  return {action, issueNumber, exitWithError}
+  const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
+  const commitHash = process.env.GITHUB_SHA ?? ''
+
+  return {action, issueNumber, exitWithError, repoOwner, repoName, commitHash}
 }

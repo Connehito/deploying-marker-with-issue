@@ -1,5 +1,6 @@
 import {FromSchema} from 'json-schema-to-ts'
-import {buildValidator, fetchGitHubGraphQL} from './common'
+import {buildValidator} from '../common/validater'
+import {fetchGitHubGraphQL} from './common'
 
 const IssueSchema = {
   type: 'object',

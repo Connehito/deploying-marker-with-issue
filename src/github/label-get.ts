@@ -1,5 +1,6 @@
-import {buildValidator, fetchGitHubGraphQL} from './common'
+import {fetchGitHubGraphQL} from './common'
 import {FromSchema} from 'json-schema-to-ts'
+import {buildValidator} from '../common/validater'
 
 export const Schema = {
   type: 'object',
