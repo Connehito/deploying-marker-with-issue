@@ -180,7 +180,7 @@ const getInput = () => {
     const action = core.getInput('action', { required: true });
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
     const exitWithError = core.getBooleanInput('exit-with-error', {
-        required: true
+        required: false
     });
     return { action, issueNumber, exitWithError };
 };

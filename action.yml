@@ -4,10 +4,14 @@ author: 'Connehito'
 inputs:
   action:
     required: true
-    description: 'check-marker, add-marker or remove-marker'
+    description: 'Specify `check-marker`, `add-marker` or `remove-marker`'
   issue-number:
     required: true
-    description: '(TODO)'
+    description: 'The issue number of the GitHub Issue for labeling'
+  exit-with-error:
+    required: false
+    description: 'Exit with an error depending on the label status.'
+    default: "true"
 runs:
   using: 'node16'
   main: 'dist/index.js'
