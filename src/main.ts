@@ -2,10 +2,13 @@ import * as core from '@actions/core'
 
 async function run(): Promise<void> {
   try {
-    const action = core.getInput('action')
-    const issueNumber = parseInt(core.getInput('issue-number'), 10)
+    const action = core.getInput('action', {required: true})
+    const issueNumber = parseInt(
+      core.getInput('issue-number', {required: true}),
+      10
+    )
 
-    core.debug(`DEBUG: ${JSON.stringify({action, issueNumber})}`)
+    core.info(`DEBUG: ${JSON.stringify({action, issueNumber})}`)
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message)
