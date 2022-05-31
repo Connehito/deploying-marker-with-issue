@@ -9,13 +9,14 @@ jobs:
         with:
           action: "check-marker"
           issue-number: 12
+          exit-with-error: true # true = exit with error when the marker is not found
       - uses: Connehito/deploying-marker-with-issue@main
         with:
           action: "add-marker"
           issue-number: 12
-          exit-with-error-if-label-already-exists: false
+          exit-with-error: true # true = exit with error when the marker is already exists
       - uses: Connehito/deploying-marker-with-issue@main
         with:
           action: "remove-marker"
           issue-number: 12
-          exit-with-error-if-label-not-exists: false
+          exit-with-error: false # true = exit with error when the marker is not exists
