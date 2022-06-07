@@ -4,7 +4,7 @@ import {attachMarker} from './actions/attach-marker'
 import {checkMarkerAttached} from './actions/check-marker-attached'
 import {checkMarkerDetached} from './actions/check-marker-detached'
 import {detachMarker} from './actions/detach-marker'
-import {Messages} from './common/messages'
+import {getMessage} from './common/messages'
 
 const run = async (): Promise<void> => {
   try {
@@ -12,12 +12,12 @@ const run = async (): Promise<void> => {
     switch (input.action) {
       case 'check-marker-attached':
         if (!(await checkMarkerAttached(input)) && input.exitWithError) {
-          core.setFailed(Messages['error:label_already_attached'])
+          core.setFailed(getMessage('error:label_already_attached'))
         }
         break
       case 'check-marker-detached':
         if (!(await checkMarkerDetached(input)) && input.exitWithError) {
-          core.setFailed(Messages['error:label_already_detached'])
+          core.setFailed(getMessage('error:label_already_detached'))
         }
         break
       case 'attach-marker':

@@ -1,6 +1,14 @@
 import {LabelName} from './label'
 
-export const Messages = {
+export const getMessage = (key: keyof typeof Messages): string => {
+  const message = Messages[key]
+  if (message != null) {
+    return message
+  }
+  throw new Error(`Unknown message key: ${key}`)
+}
+
+const Messages = {
   'error:label_already_attached': [
     `ERROR: "${LabelName}" label already attached.`,
     '- Please check latest issue comments',
