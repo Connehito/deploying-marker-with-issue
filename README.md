@@ -2,7 +2,9 @@
 
 This action checks, applies and removes the "Deploying" label of GitHub Issue that indicating the deployment status.
 
+## Example issue
 
+https://github.com/Connehito/deploying-marker-with-issue/issues/12
 
 
 ---

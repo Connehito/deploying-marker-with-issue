@@ -1,13 +1,17 @@
+import {onError, onWarning} from '../common/error'
 import {Input} from '../common/input'
-import {getIssue} from '../github/issue-get'
-import {LabelName} from '../common/label'
+import {attachedMarkerOnIssue} from '../common/label'
+import {getMessage} from '../common/messages'
 
-export const checkMarkerAttached = async (input: Input): Promise<boolean> => {
-  const {repoName, repoOwner, issueNumber} = input
+export const checkMarkerAttached = async (input: Input): Promise<void> => {
+  const {repoOwner, repoName, issueNumber, exitWithError} = input
+  const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
 
-  const issue = await getIssue({owner: repoOwner, repo: repoName, issueNumber})
-  const label = issue.data.organization.repository.issue.labels.nodes.find(
-    ({name}) => name === LabelName
-  )
-  return label != null
+  if (!attached) {
+    if (exitWithError) {
+      onError(getMessage('error:label_already_detached'))
+    } else {
+      onWarning(getMessage('warning:label_already_detached'))
+    }
+  }
 }

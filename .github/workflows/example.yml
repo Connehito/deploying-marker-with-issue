@@ -25,7 +25,8 @@ jobs:
         with:
           action: "check-marker-attached"
           issue-number: 12
-          exit-with-error: true # true = exit with error when the marker is found
+#          exit-with-error: true # true = exit with error when the marker is found
+          exit-with-error: false
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
