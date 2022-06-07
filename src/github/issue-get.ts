@@ -59,8 +59,8 @@ const IssueSchema = {
 } as const
 
 interface Args {
-  owner: string
-  repo: string
+  repoOwner: string
+  repoName: string
   issueNumber: number
 }
 

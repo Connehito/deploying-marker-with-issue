@@ -10,11 +10,7 @@ export const attachedMarkerOnIssue = async (
   repoName: string,
   issueNumber: number
 ): Promise<boolean> => {
-  const issueData = await getIssue({
-    owner: repoOwner,
-    repo: repoName,
-    issueNumber
-  })
+  const issueData = await getIssue({repoOwner, repoName, issueNumber})
   const labels = issueData.data.organization.repository.issue.labels.nodes
   const label = labels.find(({name}) => name === LabelName)
   return label != null

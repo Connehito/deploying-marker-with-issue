@@ -51,21 +51,24 @@ const Schema = {
 } as const
 
 interface Args {
-  owner: string
-  repo: string
+  repoOwner: string
+  repoName: string
+  labelName: string
+  labelColor?: string | null
+  labelDescription?: string | null
 }
 
 export const createLabel = async (
   args: Args
 ): Promise<FromSchema<typeof Schema>> => {
-  const {owner, repo} = args
+  const {repoOwner, repoName, labelName, labelColor, labelDescription} = args
   const response = await fetchGitHubApiV3(
     'POST',
-    `/repos/${owner}/${repo}/labels`,
+    `/repos/${repoOwner}/${repoName}/labels`,
     JSON.stringify({
-      name: LabelName,
-      color: DefaultLabelColor,
-      description: DefaultLabelDescription
+      name: labelName,
+      color: labelColor ?? DefaultLabelColor,
+      description: labelDescription ?? DefaultLabelDescription
     })
   )
   return buildValidator(Schema)(await response.json())

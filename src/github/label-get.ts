@@ -51,8 +51,8 @@ export const Schema = {
 } as const
 
 interface Args {
-  owner: string
-  repo: string
+  repoOwner: string
+  repoName: string
   labelName: string
 }
 
