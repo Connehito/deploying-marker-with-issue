@@ -26,7 +26,7 @@
     "@actions/core": "^1.8.2",
     "@types/node-fetch": "^2.6.1",
     "ajv": "^8.11.0",
-    "json-schema-to-ts": "^5.2.3",
+    "json-schema-to-ts": "^2.5.3",
     "node-fetch": "^3.2.4"
   },
   "devDependencies": {
