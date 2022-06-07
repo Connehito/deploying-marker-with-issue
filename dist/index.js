@@ -6,29 +6,6 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,9 +17,35 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.attachMarker = void 0;
-const core = __importStar(__nccwpck_require__(2186));
+const issue_get_1 = __nccwpck_require__(2596);
+const issue_update_1 = __nccwpck_require__(8874);
+const label_get_1 = __nccwpck_require__(7646);
+const label_1 = __nccwpck_require__(6543);
+const label_create_1 = __nccwpck_require__(133);
+const error_1 = __nccwpck_require__(4966);
+const messages_1 = __nccwpck_require__(4585);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    core.info(`DEBUG: ${JSON.stringify(input)}`);
+    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
+    if (attached) {
+        if (exitWithError) {
+            (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_attached'));
+        }
+        return;
+    }
+    const issue = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
+    const labels = (yield (0, label_get_1.getLabels)({ repoOwner, repoName, labelName: label_1.LabelName }))
+        .data.organization.repository.labels.nodes;
+    const label = labels.find(({ name }) => name === label_1.LabelName);
+    const labelId = label != null
+        ? label.id
+        : (yield (0, label_create_1.createLabel)({
+            repoOwner,
+            repoName,
+            labelName: label_1.LabelName
+        })).node_id;
+    const issueId = issue.data.organization.repository.issue.id;
+    yield (0, issue_update_1.updateIssue)({ issueId, labelIds: [labelId] });
 });
 exports.attachMarker = attachMarker;
 
@@ -65,13 +68,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkMarkerAttached = void 0;
-const issue_get_1 = __nccwpck_require__(2596);
+const error_1 = __nccwpck_require__(4966);
 const label_1 = __nccwpck_require__(6543);
+const messages_1 = __nccwpck_require__(4585);
 const checkMarkerAttached = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoName, repoOwner, issueNumber } = input;
-    const issue = yield (0, issue_get_1.getIssue)({ owner: repoOwner, repo: repoName, issueNumber });
-    const label = issue.data.organization.repository.issue.labels.nodes.find(({ name }) => name === label_1.LabelName);
-    return label != null;
+    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
+    if (!attached) {
+        if (exitWithError) {
+            (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_detached'));
+        }
+        else {
+            (0, error_1.onWarning)((0, messages_1.getMessage)('warning:label_already_detached'));
+        }
+    }
 });
 exports.checkMarkerAttached = checkMarkerAttached;
 
@@ -94,13 +104,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.checkMarkerDetached = void 0;
-const issue_get_1 = __nccwpck_require__(2596);
 const label_1 = __nccwpck_require__(6543);
+const error_1 = __nccwpck_require__(4966);
+const messages_1 = __nccwpck_require__(4585);
 const checkMarkerDetached = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoName, repoOwner, issueNumber } = input;
-    const issue = yield (0, issue_get_1.getIssue)({ owner: repoOwner, repo: repoName, issueNumber });
-    const label = issue.data.organization.repository.issue.labels.nodes.find(({ name }) => name === label_1.LabelName);
-    return label == null;
+    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
+    if (attached) {
+        if (exitWithError) {
+            (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_attached'));
+        }
+        else {
+            (0, error_1.onWarning)((0, messages_1.getMessage)('warning:label_already_attached'));
+        }
+    }
 });
 exports.checkMarkerDetached = checkMarkerDetached;
 
@@ -108,6 +125,66 @@ exports.checkMarkerDetached = checkMarkerDetached;
 /***/ }),
 
 /***/ 811:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.detachMarker = void 0;
+const issue_get_1 = __nccwpck_require__(2596);
+const issue_update_1 = __nccwpck_require__(8874);
+const label_1 = __nccwpck_require__(6543);
+const error_1 = __nccwpck_require__(4966);
+const messages_1 = __nccwpck_require__(4585);
+const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
+    if (attached) {
+        if (exitWithError) {
+            (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_detached'));
+        }
+        return;
+    }
+    const issue = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
+    const { id: issueId, labels } = issue.data.organization.repository.issue;
+    const labelIds = labels.nodes
+        .filter(({ name }) => name !== label_1.LabelName)
+        .map(({ id }) => id);
+    yield (0, issue_update_1.updateIssue)({ issueId, labelIds });
+});
+exports.detachMarker = detachMarker;
+
+
+/***/ }),
+
+/***/ 5284:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getEnvVar = void 0;
+const getEnvVar = (name) => {
+    const value = process.env[name];
+    if (!value)
+        throw new Error(`Missing environment variable ${name}`);
+    return value;
+};
+exports.getEnvVar = getEnvVar;
+
+
+/***/ }),
+
+/***/ 4966:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -135,40 +212,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.detachMarker = void 0;
+exports.onWarning = exports.onError = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    core.info(`DEBUG: ${JSON.stringify(input)}`);
-});
-exports.detachMarker = detachMarker;
-
-
-/***/ }),
-
-/***/ 5284:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getEnvVar = void 0;
-const getEnvVar = (name) => {
-    const value = process.env[name];
-    if (!value)
-        throw new Error(`Missing environment variable ${name}`);
-    return value;
+const onError = (message) => {
+    core.setFailed(message);
 };
-exports.getEnvVar = getEnvVar;
+exports.onError = onError;
+const onWarning = (message) => {
+    core.warning(message);
+};
+exports.onWarning = onWarning;
 
 
 /***/ }),
@@ -221,15 +275,32 @@ exports.getInput = getInput;
 /***/ }),
 
 /***/ 6543:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DefaultLabelDescription = exports.DefaultLabelColor = exports.LabelName = void 0;
+exports.attachedMarkerOnIssue = exports.DefaultLabelDescription = exports.DefaultLabelColor = exports.LabelName = void 0;
+const issue_get_1 = __nccwpck_require__(2596);
 exports.LabelName = 'Deploying';
 exports.DefaultLabelColor = '#FF0000';
 exports.DefaultLabelDescription = 'This label indicates that deployment is in progress.';
+const attachedMarkerOnIssue = (repoOwner, repoName, issueNumber) => __awaiter(void 0, void 0, void 0, function* () {
+    const issueData = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
+    const labels = issueData.data.organization.repository.issue.labels.nodes;
+    const label = labels.find(({ name }) => name === exports.LabelName);
+    return label != null;
+});
+exports.attachedMarkerOnIssue = attachedMarkerOnIssue;
 
 
 /***/ }),
@@ -240,9 +311,17 @@ exports.DefaultLabelDescription = 'This label indicates that deployment is in pr
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Messages = void 0;
+exports.getMessage = void 0;
 const label_1 = __nccwpck_require__(6543);
-exports.Messages = {
+const getMessage = (key) => {
+    const message = Messages[key];
+    if (message != null) {
+        return message;
+    }
+    throw new Error(`Unknown message key: ${key}`);
+};
+exports.getMessage = getMessage;
+const Messages = {
     'error:label_already_attached': [
         `ERROR: "${label_1.LabelName}" label already attached.`,
         '- Please check latest issue comments',
@@ -252,7 +331,9 @@ exports.Messages = {
         `ERROR: "${label_1.LabelName}" label already detached.`,
         '- Please check latest issue comments',
         `- If to attach "${label_1.LabelName}" label is no problem, please attach the label manually.`
-    ].join('\n')
+    ].join('\n'),
+    'warning:label_already_attached': `WARNING: "${label_1.LabelName}" label already attached, but not errored because exit-with-error is false.`,
+    'warning:label_already_detached': `WARNING: "${label_1.LabelName}" label already detached, but not errored because exit-with-error is false.`
 };
 
 
@@ -437,6 +518,193 @@ exports.getIssue = getIssue;
 
 /***/ }),
 
+/***/ 8874:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.updateIssue = void 0;
+const common_1 = __nccwpck_require__(9465);
+const updateIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
+    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $labelIds: [ID!]) {
+       updateIssue(input: {id: $issueId, labelIds: $labelIds}) {
+         clientMutationId
+       }
+     }`, Object.assign({}, args));
+});
+exports.updateIssue = updateIssue;
+
+
+/***/ }),
+
+/***/ 133:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createLabel = void 0;
+const common_1 = __nccwpck_require__(9465);
+const label_1 = __nccwpck_require__(6543);
+const validater_1 = __nccwpck_require__(5878);
+// https://docs.github.com/ja/rest/issues/labels#create-a-label
+const Schema = {
+    title: 'Label',
+    description: 'Color-coded labels help you categorize and filter your issues (just like labels in Gmail).',
+    type: 'object',
+    properties: {
+        id: {
+            type: 'integer',
+            examples: [208045946]
+        },
+        node_id: {
+            type: 'string',
+            examples: ['MDU6TGFiZWwyMDgwNDU5NDY=']
+        },
+        url: {
+            description: 'URL for the label',
+            type: 'string',
+            examples: ['https://api.github.com/repositories/42/labels/bug']
+        },
+        name: {
+            description: 'The name of the label.',
+            type: 'string',
+            examples: ['bug']
+        },
+        description: {
+            type: ['string', 'null'],
+            examples: ["Something isn't working"]
+        },
+        color: {
+            description: '6-character hex code, without the leading #, identifying the color',
+            type: 'string',
+            examples: ['FFFFFF']
+        },
+        default: {
+            type: 'boolean',
+            examples: [true]
+        }
+    },
+    required: ['id', 'node_id', 'url', 'name', 'description', 'color', 'default']
+};
+const createLabel = (args) => __awaiter(void 0, void 0, void 0, function* () {
+    const { repoOwner, repoName, labelName, labelColor, labelDescription } = args;
+    const response = yield (0, common_1.fetchGitHubApiV3)('POST', `/repos/${repoOwner}/${repoName}/labels`, JSON.stringify({
+        name: labelName,
+        color: labelColor !== null && labelColor !== void 0 ? labelColor : label_1.DefaultLabelColor,
+        description: labelDescription !== null && labelDescription !== void 0 ? labelDescription : label_1.DefaultLabelDescription
+    }));
+    return (0, validater_1.buildValidator)(Schema)(yield response.json());
+});
+exports.createLabel = createLabel;
+
+
+/***/ }),
+
+/***/ 7646:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getLabels = exports.Schema = void 0;
+const common_1 = __nccwpck_require__(9465);
+const validater_1 = __nccwpck_require__(5878);
+exports.Schema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['data'],
+    properties: {
+        data: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['organization'],
+            properties: {
+                organization: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['repository'],
+                    properties: {
+                        repository: {
+                            type: 'object',
+                            additionalProperties: false,
+                            required: ['labels'],
+                            properties: {
+                                labels: {
+                                    type: 'object',
+                                    additionalProperties: false,
+                                    required: ['nodes'],
+                                    properties: {
+                                        nodes: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
+                                                additionalProperties: false,
+                                                required: ['id', 'name'],
+                                                properties: {
+                                                    id: { type: 'string' },
+                                                    name: { type: 'string' }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+const getLabels = (args) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($owner: String!, $repo: String!, $labelName: String!) {
+       organization(login: $owner) {
+         repository(name: $repo) {
+           labels(first: 100, query: $labelName) {
+             nodes {
+               id
+               name
+             }
+           }
+         }
+       }
+     }`, Object.assign({}, args));
+    return (0, validater_1.buildValidator)(exports.Schema)(result);
+});
+exports.getLabels = getLabels;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -481,20 +749,15 @@ const attach_marker_1 = __nccwpck_require__(9780);
 const check_marker_attached_1 = __nccwpck_require__(6118);
 const check_marker_detached_1 = __nccwpck_require__(9922);
 const detach_marker_1 = __nccwpck_require__(811);
-const messages_1 = __nccwpck_require__(4585);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const input = (0, input_1.getInput)();
         switch (input.action) {
             case 'check-marker-attached':
-                if (!(yield (0, check_marker_attached_1.checkMarkerAttached)(input)) && input.exitWithError) {
-                    core.setFailed(messages_1.Messages['error:label_already_attached']);
-                }
+                yield (0, check_marker_attached_1.checkMarkerAttached)(input);
                 break;
             case 'check-marker-detached':
-                if (!(yield (0, check_marker_detached_1.checkMarkerDetached)(input)) && input.exitWithError) {
-                    core.setFailed(messages_1.Messages['error:label_already_detached']);
-                }
+                yield (0, check_marker_detached_1.checkMarkerDetached)(input);
                 break;
             case 'attach-marker':
                 yield (0, attach_marker_1.attachMarker)(input);
@@ -511,7 +774,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             core.setFailed(error.message);
         }
         else {
-            core.setFailed(`ERROR: ${error}`);
+            core.setFailed(`ERROR: ${JSON.stringify(error)}`);
         }
     }
 });
