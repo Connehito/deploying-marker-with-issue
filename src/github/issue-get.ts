@@ -68,9 +68,9 @@ export const getIssue = async (
   args: Args
 ): Promise<FromSchema<typeof IssueSchema>> => {
   const result = await fetchGitHubGraphQL(
-    `query ($owner: String!, $repo: String!, $issueNumber: Int!) {
-      organization(login: $owner) {
-        repository(name: $repo) {
+    `query ($repoOwner: String!, $repoName: String!, $issueNumber: Int!) {
+      organization(login: $repoOwner) {
+        repository(name: $repoName) {
           issue(number: $issueNumber) {
             id
             labels(first: 100) {

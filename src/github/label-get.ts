@@ -60,9 +60,9 @@ export const getLabels = async (
   args: Args
 ): Promise<FromSchema<typeof Schema>> => {
   const result = await fetchGitHubGraphQL(
-    `query ($owner: String!, $repo: String!, $labelName: String!) {
-       organization(login: $owner) {
-         repository(name: $repo) {
+    `query ($repoOwner: String!, $repoName: String!, $labelName: String!) {
+       organization(login: $repoOwner) {
+         repository(name: $repoName) {
            labels(first: 100, query: $labelName) {
              nodes {
                id

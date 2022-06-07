@@ -148,7 +148,7 @@ const messages_1 = __nccwpck_require__(4585);
 const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { repoOwner, repoName, issueNumber, exitWithError } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
-    if (attached) {
+    if (!attached) {
         if (exitWithError) {
             (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_detached'));
         }
@@ -292,7 +292,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.attachedMarkerOnIssue = exports.DefaultLabelDescription = exports.DefaultLabelColor = exports.LabelName = void 0;
 const issue_get_1 = __nccwpck_require__(2596);
 exports.LabelName = 'Deploying';
-exports.DefaultLabelColor = '#FF0000';
+exports.DefaultLabelColor = 'FF0000';
 exports.DefaultLabelDescription = 'This label indicates that deployment is in progress.';
 const attachedMarkerOnIssue = (repoOwner, repoName, issueNumber) => __awaiter(void 0, void 0, void 0, function* () {
     const issueData = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
@@ -496,9 +496,9 @@ const IssueSchema = {
     }
 };
 const getIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($owner: String!, $repo: String!, $issueNumber: Int!) {
-      organization(login: $owner) {
-        repository(name: $repo) {
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($repoOwner: String!, $repoName: String!, $issueNumber: Int!) {
+      organization(login: $repoOwner) {
+        repository(name: $repoName) {
           issue(number: $issueNumber) {
             id
             labels(first: 100) {
@@ -686,9 +686,9 @@ exports.Schema = {
     }
 };
 const getLabels = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($owner: String!, $repo: String!, $labelName: String!) {
-       organization(login: $owner) {
-         repository(name: $repo) {
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($repoOwner: String!, $repoName: String!, $labelName: String!) {
+       organization(login: $repoOwner) {
+         repository(name: $repoName) {
            labels(first: 100, query: $labelName) {
              nodes {
                id

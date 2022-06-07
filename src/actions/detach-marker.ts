@@ -9,7 +9,7 @@ export const detachMarker = async (input: Input): Promise<void> => {
   const {repoOwner, repoName, issueNumber, exitWithError} = input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
-  if (attached) {
+  if (!attached) {
     if (exitWithError) {
       onError(getMessage('error:label_already_detached'))
     }
