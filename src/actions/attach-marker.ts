@@ -9,7 +9,8 @@ import {getMessage, updateIssueBody} from '../common/messages'
 import {createIssueComment} from '../github/issue-comment-create'
 
 export const attachMarker = async (input: Input): Promise<void> => {
-  const {repoOwner, repoName, issueNumber, exitWithError, ref, actor} = input
+  const {repoOwner, repoName, issueNumber, exitWithError, refLink, actor} =
+    input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (attached) {
@@ -40,7 +41,7 @@ export const attachMarker = async (input: Input): Promise<void> => {
   await updateIssue({issueId, body, labelIds: [labelId]})
   const comment = await createIssueComment({
     issueId,
-    body: `Attached \`${LabelName}\` label by ${ref}, initiated this workflow by @${actor}`
+    body: `Attached \`${LabelName}\` label by ${refLink}, initiated this workflow by @${actor}`
   })
   await updateIssue({
     issueId,
