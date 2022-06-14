@@ -10,14 +10,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-detached"
-          issue-number: 12
+          issue-number: 21
           exit-with-error: true # true = exit with error when the marker is not found
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "attach-marker"
-          issue-number: 12
+          issue-number: 21
           exit-with-error: true # true = exit with error when the marker is already exists
       - name: Sleep 30s
         run: sleep 30
@@ -26,12 +26,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-attached"
-          issue-number: 12
+          issue-number: 21
           exit-with-error: true # true = exit with error when the marker is found
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "detach-marker"
-          issue-number: 12
+          issue-number: 21
           exit-with-error: false # true = exit with error when the marker is not exists
