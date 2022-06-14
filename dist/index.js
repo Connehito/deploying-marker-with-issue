@@ -25,7 +25,6 @@ const label_create_1 = __nccwpck_require__(133);
 const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
 const issue_comment_create_1 = __nccwpck_require__(3173);
-const core_1 = __nccwpck_require__(2186);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
@@ -36,6 +35,7 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     const issue = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
+    const { body } = issue.data.organization.repository.issue;
     const labels = (yield (0, label_get_1.getLabels)({ repoOwner, repoName, labelName: label_1.LabelName }))
         .data.organization.repository.labels.nodes;
     const label = labels.find(({ name }) => name === label_1.LabelName);
@@ -47,12 +47,16 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
             labelName: label_1.LabelName
         })).node_id;
     const issueId = issue.data.organization.repository.issue.id;
-    yield (0, issue_update_1.updateIssue)({ issueId, labelIds: [labelId] });
+    yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds: [labelId] });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
         body: `Attached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
     });
-    (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
+    yield (0, issue_update_1.updateIssue)({
+        issueId,
+        body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
+        labelIds: [labelId]
+    });
 });
 exports.attachMarker = attachMarker;
 
@@ -152,7 +156,6 @@ const issue_update_1 = __nccwpck_require__(8874);
 const label_1 = __nccwpck_require__(6543);
 const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
-const core_1 = __nccwpck_require__(2186);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
@@ -164,16 +167,20 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     const issue = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
-    const { id: issueId, labels } = issue.data.organization.repository.issue;
+    const { id: issueId, body, labels } = issue.data.organization.repository.issue;
     const labelIds = labels.nodes
         .filter(({ name }) => name !== label_1.LabelName)
         .map(({ id }) => id);
-    yield (0, issue_update_1.updateIssue)({ issueId, labelIds });
+    yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
         body: `Detached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
     });
-    (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
+    yield (0, issue_update_1.updateIssue)({
+        issueId,
+        body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
+        labelIds
+    });
 });
 exports.detachMarker = detachMarker;
 
@@ -335,9 +342,26 @@ exports.attachedMarkerOnIssue = attachedMarkerOnIssue;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMessage = exports.LatestCommentMarker = void 0;
+exports.getMessage = exports.updateIssueBody = void 0;
 const label_1 = __nccwpck_require__(6543);
-exports.LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->';
+const LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->';
+const updateIssueBody = (sourceBody, latestCommentUrl) => {
+    const bodyLines = sourceBody.split(/\r?\n/g);
+    const markerLineIndex = bodyLines.findIndex(line => line.includes(LatestCommentMarker));
+    if (markerLineIndex === -1) {
+        // Not exists marker line
+        return `${sourceBody}\n\n## Latest Comment\n\n- ${latestCommentUrl} ${LatestCommentMarker}`;
+    }
+    return bodyLines
+        .map((line, index) => {
+        if (index !== markerLineIndex) {
+            return line;
+        }
+        return `- ${latestCommentUrl} ${LatestCommentMarker}`;
+    })
+        .join('\n');
+};
+exports.updateIssueBody = updateIssueBody;
 const getMessage = (key) => {
     const message = Messages[key];
     if (message != null) {
@@ -562,9 +586,10 @@ const IssueSchema = {
                                 issue: {
                                     type: 'object',
                                     additionalProperties: false,
-                                    required: ['id', 'labels'],
+                                    required: ['id', 'body', 'labels'],
                                     properties: {
                                         id: { type: 'string' },
+                                        body: { type: 'string' },
                                         labels: {
                                             type: 'object',
                                             additionalProperties: false,
@@ -600,6 +625,7 @@ const getIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
         repository(name: $repoName) {
           issue(number: $issueNumber) {
             id
+            body
             labels(first: 100) {
               nodes {
                 id
@@ -635,8 +661,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateIssue = void 0;
 const common_1 = __nccwpck_require__(9465);
 const updateIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $labelIds: [ID!]) {
-       updateIssue(input: {id: $issueId, labelIds: $labelIds}) {
+    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!, $labelIds: [ID!]) {
+       updateIssue(input: {id: $issueId, body: $body, labelIds: $labelIds}) {
          clientMutationId
        }
      }`, Object.assign({}, args));

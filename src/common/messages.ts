@@ -1,6 +1,27 @@
 import {LabelName} from './label'
 
-export const LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->'
+const LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->'
+export const updateIssueBody = (
+  sourceBody: string,
+  latestCommentUrl: string
+): string => {
+  const bodyLines = sourceBody.split(/\r?\n/g)
+  const markerLineIndex = bodyLines.findIndex(line =>
+    line.includes(LatestCommentMarker)
+  )
+  if (markerLineIndex === -1) {
+    // Not exists marker line
+    return `${sourceBody}\n\n## Latest Comment\n\n- ${latestCommentUrl} ${LatestCommentMarker}`
+  }
+  return bodyLines
+    .map((line, index) => {
+      if (index !== markerLineIndex) {
+        return line
+      }
+      return `- ${latestCommentUrl} ${LatestCommentMarker}`
+    })
+    .join('\n')
+}
 
 export const getMessage = (key: keyof typeof Messages): string => {
   const message = Messages[key]

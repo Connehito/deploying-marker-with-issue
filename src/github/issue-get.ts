@@ -25,9 +25,10 @@ const IssueSchema = {
                 issue: {
                   type: 'object',
                   additionalProperties: false,
-                  required: ['id', 'labels'],
+                  required: ['id', 'body', 'labels'],
                   properties: {
                     id: {type: 'string'},
+                    body: {type: 'string'},
                     labels: {
                       type: 'object',
                       additionalProperties: false,
@@ -73,6 +74,7 @@ export const getIssue = async (
         repository(name: $repoName) {
           issue(number: $issueNumber) {
             id
+            body
             labels(first: 100) {
               nodes {
                 id

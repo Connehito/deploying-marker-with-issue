@@ -3,8 +3,7 @@ import {getIssue} from '../github/issue-get'
 import {updateIssue} from '../github/issue-update'
 import {attachedMarkerOnIssue, LabelName} from '../common/label'
 import {onError} from '../common/error'
-import {getMessage} from '../common/messages'
-import {warning} from '@actions/core'
+import {getMessage, updateIssueBody} from '../common/messages'
 import {createIssueComment} from '../github/issue-comment-create'
 
 export const detachMarker = async (input: Input): Promise<void> => {
@@ -20,17 +19,19 @@ export const detachMarker = async (input: Input): Promise<void> => {
   }
 
   const issue = await getIssue({repoOwner, repoName, issueNumber})
-  const {id: issueId, labels} = issue.data.organization.repository.issue
+  const {id: issueId, body, labels} = issue.data.organization.repository.issue
   const labelIds = labels.nodes
     .filter(({name}) => name !== LabelName)
     .map(({id}) => id)
 
-  await updateIssue({issueId, labelIds})
+  await updateIssue({issueId, body, labelIds})
   const comment = await createIssueComment({
     issueId,
     body: `Detached \`${LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
   })
-  warning(
-    `DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`
-  )
+  await updateIssue({
+    issueId,
+    body: updateIssueBody(body, comment.data.addComment.commentEdge.node.url),
+    labelIds
+  })
 }
