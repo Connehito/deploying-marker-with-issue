@@ -7,6 +7,7 @@ export interface Input {
   repoOwner: string
   repoName: string
   commitHash: string
+  actor: string
 }
 
 export const getInput = (): Input => {
@@ -21,7 +22,15 @@ export const getInput = (): Input => {
 
   const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
   const commitHash = process.env.GITHUB_SHA ?? ''
-  core.warning(JSON.stringify(process.env, null, 2))
+  const actor = process.env.GITHUB_ACTOR ?? ''
 
-  return {action, issueNumber, exitWithError, repoOwner, repoName, commitHash}
+  return {
+    action,
+    issueNumber,
+    exitWithError,
+    repoOwner,
+    repoName,
+    commitHash,
+    actor
+  }
 }

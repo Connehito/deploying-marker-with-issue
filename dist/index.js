@@ -273,7 +273,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const getInput = () => {
-    var _a, _b;
+    var _a, _b, _c;
     const action = core.getInput('action', { required: true });
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
     const exitWithError = core.getBooleanInput('exit-with-error', {
@@ -281,8 +281,16 @@ const getInput = () => {
     });
     const [repoOwner, repoName] = ((_a = process.env.GITHUB_REPOSITORY) !== null && _a !== void 0 ? _a : '').split('/');
     const commitHash = (_b = process.env.GITHUB_SHA) !== null && _b !== void 0 ? _b : '';
-    core.warning(JSON.stringify(process.env, null, 2));
-    return { action, issueNumber, exitWithError, repoOwner, repoName, commitHash };
+    const actor = (_c = process.env.GITHUB_ACTOR) !== null && _c !== void 0 ? _c : '';
+    return {
+        action,
+        issueNumber,
+        exitWithError,
+        repoOwner,
+        repoName,
+        commitHash,
+        actor
+    };
 };
 exports.getInput = getInput;
 
@@ -495,9 +503,13 @@ const Schema = {
     }
 };
 const createIssueComment = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $labelIds: [ID!]) {
-       updateIssue(input: {id: $issueId, labelIds: $labelIds}) {
-         clientMutationId
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!) {
+       addComment(input: {subjectId: $issueId, body: $body}) {
+         commentEdge {
+           node {
+             url
+           }
+         }
        }
      }`, Object.assign({}, args));
     return (0, validater_1.buildValidator)(Schema)(result);
