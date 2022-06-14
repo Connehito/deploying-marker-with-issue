@@ -1,11 +1,12 @@
 # deploying-marker-with-issue
 
-This action checks, applies and removes the "Deploying" label of GitHub Issue that indicating the deployment status.
+This action checks, attaches and detaches the "Deploying" label of GitHub Issue that indicating the deployment status.
 
 ## Example issue
 
-https://github.com/Connehito/deploying-marker-with-issue/issues/12
+https://github.com/Connehito/deploying-marker-with-issue/issues/21
 
+<!--
 
 ---
 
@@ -114,3 +115,5 @@ See the [actions tab](https://github.com/actions/typescript-action/actions) for 
 ## Usage:
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+
+-->
