@@ -1,24 +1,24 @@
 import {LabelName} from './label'
 
-const LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->'
+const LatestLogCommentMarker = '<!-- LATEST_LOG_COMMENT_MARKER:LK2YMYBB -->'
 export const updateIssueBody = (
   sourceBody: string,
   latestCommentUrl: string
 ): string => {
   const bodyLines = sourceBody.split(/\r?\n/g)
   const markerLineIndex = bodyLines.findIndex(line =>
-    line.includes(LatestCommentMarker)
+    line.includes(LatestLogCommentMarker)
   )
   if (markerLineIndex === -1) {
     // Not exists marker line
-    return `${sourceBody}\n\n## Latest Comment\n\n- ${latestCommentUrl} ${LatestCommentMarker}`
+    return `${sourceBody}\n\n## Latest Log Comment\n\n- ${latestCommentUrl} ${LatestLogCommentMarker}`
   }
   return bodyLines
     .map((line, index) => {
       if (index !== markerLineIndex) {
         return line
       }
-      return `- ${latestCommentUrl} ${LatestCommentMarker}`
+      return `- ${latestCommentUrl} ${LatestLogCommentMarker}`
     })
     .join('\n')
 }
