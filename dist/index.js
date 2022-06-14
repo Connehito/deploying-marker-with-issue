@@ -24,8 +24,10 @@ const label_1 = __nccwpck_require__(6543);
 const label_create_1 = __nccwpck_require__(133);
 const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
+const issue_comment_create_1 = __nccwpck_require__(3173);
+const core_1 = __nccwpck_require__(2186);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, commitHash } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (attached) {
         if (exitWithError) {
@@ -46,6 +48,11 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         })).node_id;
     const issueId = issue.data.organization.repository.issue.id;
     yield (0, issue_update_1.updateIssue)({ issueId, labelIds: [labelId] });
+    const comment = yield (0, issue_comment_create_1.createIssueComment)({
+        issueId,
+        body: `Attached \`${label_1.LabelName}\` label by ${commitHash}`
+    });
+    (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
 });
 exports.attachMarker = attachMarker;
 
@@ -145,8 +152,10 @@ const issue_update_1 = __nccwpck_require__(8874);
 const label_1 = __nccwpck_require__(6543);
 const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
+const core_1 = __nccwpck_require__(2186);
+const issue_comment_create_1 = __nccwpck_require__(3173);
 const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, commitHash } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (!attached) {
         if (exitWithError) {
@@ -160,6 +169,11 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         .filter(({ name }) => name !== label_1.LabelName)
         .map(({ id }) => id);
     yield (0, issue_update_1.updateIssue)({ issueId, labelIds });
+    const comment = yield (0, issue_comment_create_1.createIssueComment)({
+        issueId,
+        body: `Detached \`${label_1.LabelName}\` label by ${commitHash}`
+    });
+    (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
 });
 exports.detachMarker = detachMarker;
 
@@ -267,6 +281,7 @@ const getInput = () => {
     });
     const [repoOwner, repoName] = ((_a = process.env.GITHUB_REPOSITORY) !== null && _a !== void 0 ? _a : '').split('/');
     const commitHash = (_b = process.env.GITHUB_SHA) !== null && _b !== void 0 ? _b : '';
+    core.warning(JSON.stringify(process.env, null, 2));
     return { action, issueNumber, exitWithError, repoOwner, repoName, commitHash };
 };
 exports.getInput = getInput;
@@ -418,6 +433,76 @@ const fetchGitHubApiV3 = (method, path, body = '') => __awaiter(void 0, void 0, 
     return response;
 });
 exports.fetchGitHubApiV3 = fetchGitHubApiV3;
+
+
+/***/ }),
+
+/***/ 3173:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.createIssueComment = void 0;
+const common_1 = __nccwpck_require__(9465);
+const validater_1 = __nccwpck_require__(5878);
+const Schema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['data'],
+    properties: {
+        data: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['addComment'],
+            properties: {
+                addComment: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['commentEdge'],
+                    properties: {
+                        commentEdge: {
+                            type: 'object',
+                            additionalProperties: false,
+                            required: ['node'],
+                            properties: {
+                                node: {
+                                    type: 'object',
+                                    additionalProperties: false,
+                                    required: ['url'],
+                                    properties: {
+                                        url: {
+                                            type: 'string',
+                                            pattern: '^https://github.com/'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+const createIssueComment = (args) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $labelIds: [ID!]) {
+       updateIssue(input: {id: $issueId, labelIds: $labelIds}) {
+         clientMutationId
+       }
+     }`, Object.assign({}, args));
+    return (0, validater_1.buildValidator)(Schema)(result);
+});
+exports.createIssueComment = createIssueComment;
 
 
 /***/ }),

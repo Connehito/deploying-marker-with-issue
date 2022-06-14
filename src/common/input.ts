@@ -21,6 +21,7 @@ export const getInput = (): Input => {
 
   const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
   const commitHash = process.env.GITHUB_SHA ?? ''
+  core.warning(JSON.stringify(process.env, null, 2))
 
   return {action, issueNumber, exitWithError, repoOwner, repoName, commitHash}
 }

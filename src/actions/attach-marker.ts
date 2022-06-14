@@ -6,9 +6,11 @@ import {attachedMarkerOnIssue, LabelName} from '../common/label'
 import {createLabel} from '../github/label-create'
 import {onError} from '../common/error'
 import {getMessage} from '../common/messages'
+import {createIssueComment} from '../github/issue-comment-create'
+import {warning} from '@actions/core'
 
 export const attachMarker = async (input: Input): Promise<void> => {
-  const {repoOwner, repoName, issueNumber, exitWithError} = input
+  const {repoOwner, repoName, issueNumber, exitWithError, commitHash} = input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (attached) {
@@ -36,4 +38,11 @@ export const attachMarker = async (input: Input): Promise<void> => {
 
   const issueId = issue.data.organization.repository.issue.id
   await updateIssue({issueId, labelIds: [labelId]})
+  const comment = await createIssueComment({
+    issueId,
+    body: `Attached \`${LabelName}\` label by ${commitHash}`
+  })
+  warning(
+    `DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`
+  )
 }
