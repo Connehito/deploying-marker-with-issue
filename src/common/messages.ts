@@ -1,5 +1,7 @@
 import {LabelName} from './label'
 
+export const LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->'
+
 export const getMessage = (key: keyof typeof Messages): string => {
   const message = Messages[key]
   if (message != null) {

@@ -20,6 +20,7 @@ export const getInput = (): Input => {
     required: false
   })
 
+  // https://docs.github.com/en/actions/learn-github-actions/environment-variables
   const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
   const commitHash = process.env.GITHUB_SHA ?? ''
   const actor = process.env.GITHUB_ACTOR ?? ''

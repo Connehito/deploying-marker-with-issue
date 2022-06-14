@@ -10,7 +10,8 @@ import {createIssueComment} from '../github/issue-comment-create'
 import {warning} from '@actions/core'
 
 export const attachMarker = async (input: Input): Promise<void> => {
-  const {repoOwner, repoName, issueNumber, exitWithError, commitHash} = input
+  const {repoOwner, repoName, issueNumber, exitWithError, commitHash, actor} =
+    input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (attached) {
@@ -40,7 +41,7 @@ export const attachMarker = async (input: Input): Promise<void> => {
   await updateIssue({issueId, labelIds: [labelId]})
   const comment = await createIssueComment({
     issueId,
-    body: `Attached \`${LabelName}\` label by ${commitHash}`
+    body: `Attached \`${LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
   })
   warning(
     `DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`

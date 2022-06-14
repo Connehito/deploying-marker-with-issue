@@ -27,7 +27,7 @@ const messages_1 = __nccwpck_require__(4585);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const core_1 = __nccwpck_require__(2186);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError, commitHash } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (attached) {
         if (exitWithError) {
@@ -50,7 +50,7 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, issue_update_1.updateIssue)({ issueId, labelIds: [labelId] });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
-        body: `Attached \`${label_1.LabelName}\` label by ${commitHash}`
+        body: `Attached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
     });
     (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
 });
@@ -155,7 +155,7 @@ const messages_1 = __nccwpck_require__(4585);
 const core_1 = __nccwpck_require__(2186);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError, commitHash } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (!attached) {
         if (exitWithError) {
@@ -171,7 +171,7 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, issue_update_1.updateIssue)({ issueId, labelIds });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
-        body: `Detached \`${label_1.LabelName}\` label by ${commitHash}`
+        body: `Detached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
     });
     (0, core_1.warning)(`DEBUG: Comment URL is ${comment.data.addComment.commentEdge.node.url}`);
 });
@@ -279,6 +279,7 @@ const getInput = () => {
     const exitWithError = core.getBooleanInput('exit-with-error', {
         required: false
     });
+    // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     const [repoOwner, repoName] = ((_a = process.env.GITHUB_REPOSITORY) !== null && _a !== void 0 ? _a : '').split('/');
     const commitHash = (_b = process.env.GITHUB_SHA) !== null && _b !== void 0 ? _b : '';
     const actor = (_c = process.env.GITHUB_ACTOR) !== null && _c !== void 0 ? _c : '';
@@ -334,8 +335,9 @@ exports.attachedMarkerOnIssue = attachedMarkerOnIssue;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getMessage = void 0;
+exports.getMessage = exports.LatestCommentMarker = void 0;
 const label_1 = __nccwpck_require__(6543);
+exports.LatestCommentMarker = '<!-- LATEST_COMMENT_MARKER:LK2YMYBB -->';
 const getMessage = (key) => {
     const message = Messages[key];
     if (message != null) {
