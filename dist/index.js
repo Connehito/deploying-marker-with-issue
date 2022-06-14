@@ -16624,7 +16624,7 @@ const getNodeRequestOptions = request => {
 
 	// HTTP-network-or-cache fetch step 2.15
 	if (request.compress && !headers.has('Accept-Encoding')) {
-		headers.set('Accept-Encoding', 'gzip,deflate,br');
+		headers.set('Accept-Encoding', 'gzip, deflate, br');
 	}
 
 	let {agent} = request;
@@ -16780,7 +16780,9 @@ async function fetch(url, options_) {
 		});
 
 		fixResponseChunkedTransferBadEnding(request_, error => {
-			response.body.destroy(error);
+			if (response && response.body) {
+				response.body.destroy(error);
+			}
 		});
 
 		/* c8 ignore next 18 */
@@ -17057,13 +17059,7 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 			}
 		};
 
-		socket.prependListener('close', onSocketClose);
-
-		request.on('abort', () => {
-			socket.removeListener('close', onSocketClose);
-		});
-
-		socket.on('data', buf => {
+		const onData = buf => {
 			properLastChunkReceived = external_node_buffer_namespaceObject.Buffer.compare(buf.slice(-5), LAST_CHUNK) === 0;
 
 			// Sometimes final 0-length chunk and end of message code are in separate packets
@@ -17075,6 +17071,14 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 			}
 
 			previousChunk = buf;
+		};
+
+		socket.prependListener('close', onSocketClose);
+		socket.on('data', onData);
+
+		request.on('close', () => {
+			socket.removeListener('close', onSocketClose);
+			socket.removeListener('data', onData);
 		});
 	});
 }
