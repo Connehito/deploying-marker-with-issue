@@ -26,7 +26,7 @@ const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, ref, actor } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (attached) {
         if (exitWithError) {
@@ -50,7 +50,7 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds: [labelId] });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
-        body: `Attached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
+        body: `Attached \`${label_1.LabelName}\` label by ${ref}, initiated this workflow by @${actor}`
     });
     yield (0, issue_update_1.updateIssue)({
         issueId,
@@ -158,7 +158,7 @@ const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError, commitHash, actor } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, ref, actor } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (!attached) {
         if (exitWithError) {
@@ -174,7 +174,7 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({
         issueId,
-        body: `Detached \`${label_1.LabelName}\` label by ${commitHash}, initiated this workflow by @${actor}`
+        body: `Detached \`${label_1.LabelName}\` label by ${ref}, initiated this workflow by @${actor}`
     });
     yield (0, issue_update_1.updateIssue)({
         issueId,
@@ -280,7 +280,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const getInput = () => {
-    var _a, _b, _c;
+    var _a, _b;
     const action = core.getInput('action', { required: true });
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
     const exitWithError = core.getBooleanInput('exit-with-error', {
@@ -288,19 +288,32 @@ const getInput = () => {
     });
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     const [repoOwner, repoName] = ((_a = process.env.GITHUB_REPOSITORY) !== null && _a !== void 0 ? _a : '').split('/');
-    const commitHash = (_b = process.env.GITHUB_SHA) !== null && _b !== void 0 ? _b : '';
-    const actor = (_c = process.env.GITHUB_ACTOR) !== null && _c !== void 0 ? _c : '';
+    const ref = getRef();
+    const actor = (_b = process.env.GITHUB_ACTOR) !== null && _b !== void 0 ? _b : '';
     return {
         action,
         issueNumber,
         exitWithError,
         repoOwner,
         repoName,
-        commitHash,
+        ref,
         actor
     };
 };
 exports.getInput = getInput;
+const getRef = () => {
+    var _a, _b;
+    // https://docs.github.com/en/actions/learn-github-actions/environment-variables
+    const refType = process.env.GITHUB_REF_TYPE;
+    switch (refType) {
+        case 'branch':
+            return (_a = process.env.GITHUB_SHA) !== null && _a !== void 0 ? _a : '';
+        case 'tag':
+            return ((_b = process.env.GITHUB_REF) !== null && _b !== void 0 ? _b : '').replace('refs/tags/', '');
+        default:
+            throw new Error(`Unknown ref type: ${refType}`);
+    }
+};
 
 
 /***/ }),

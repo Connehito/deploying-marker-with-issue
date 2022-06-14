@@ -6,7 +6,7 @@ export interface Input {
   exitWithError: boolean
   repoOwner: string
   repoName: string
-  commitHash: string
+  ref: string
   actor: string
 }
 
@@ -22,7 +22,7 @@ export const getInput = (): Input => {
 
   // https://docs.github.com/en/actions/learn-github-actions/environment-variables
   const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
-  const commitHash = process.env.GITHUB_SHA ?? ''
+  const ref = getRef()
   const actor = process.env.GITHUB_ACTOR ?? ''
 
   return {
@@ -31,7 +31,20 @@ export const getInput = (): Input => {
     exitWithError,
     repoOwner,
     repoName,
-    commitHash,
+    ref,
     actor
+  }
+}
+
+const getRef = (): string => {
+  // https://docs.github.com/en/actions/learn-github-actions/environment-variables
+  const refType = process.env.GITHUB_REF_TYPE
+  switch (refType) {
+    case 'branch':
+      return process.env.GITHUB_SHA ?? ''
+    case 'tag':
+      return (process.env.GITHUB_REF ?? '').replace('refs/tags/', '')
+    default:
+      throw new Error(`Unknown ref type: ${refType}`)
   }
 }
