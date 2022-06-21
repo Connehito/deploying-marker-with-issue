@@ -5,14 +5,14 @@ jobs:
   example: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
-      - uses: Connehito/deploying-marker-with-issue@main
+      - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-detached"
           issue-number: 21
           exit-with-error: true # true = exit with error when the marker is not found
-      - uses: Connehito/deploying-marker-with-issue@main
+      - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -21,14 +21,14 @@ jobs:
           exit-with-error: true # true = exit with error when the marker is already exists
       - name: Sleep 30s
         run: sleep 30
-      - uses: Connehito/deploying-marker-with-issue@main
+      - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-attached"
           issue-number: 21
           exit-with-error: true # true = exit with error when the marker is found
-      - uses: Connehito/deploying-marker-with-issue@main
+      - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
