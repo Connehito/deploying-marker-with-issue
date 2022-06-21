@@ -26,23 +26,20 @@ export const attachMarker = async (input: Input): Promise<void> => {
     .data.organization.repository.labels.nodes
   const label = labels.find(({name}) => name === LabelName)
 
-  const labelId =
-    label != null
-      ? label.id
-      : (
-          await createLabel({
-            repoOwner,
-            repoName,
-            labelName: LabelName
-          })
-        ).node_id
+  let labelId = label?.id
+  if (labelId == null) {
+    const createLabelResult = await createLabel({
+      repoOwner,
+      repoName,
+      labelName: LabelName
+    })
+    labelId = createLabelResult.node_id
+  }
 
   const issueId = issue.data.organization.repository.issue.id
   await updateIssue({issueId, body, labelIds: [labelId]})
-  const comment = await createIssueComment({
-    issueId,
-    body: `Attached \`${LabelName}\` label by ${refLink}, initiated this workflow by @${actor}`
-  })
+  const attachedMessage = getMessage('issue_comment:attached', {refLink, actor})
+  const comment = await createIssueComment({issueId, body: attachedMessage})
   await updateIssue({
     issueId,
     body: updateIssueBody(body, comment.data.addComment.commentEdge.node.url),
