@@ -4,6 +4,7 @@ import {attachMarker} from './actions/attach-marker'
 import {checkMarkerAttached} from './actions/check-marker-attached'
 import {checkMarkerDetached} from './actions/check-marker-detached'
 import {detachMarker} from './actions/detach-marker'
+import {onError} from './common/error'
 
 const run = async (): Promise<void> => {
   try {
@@ -22,13 +23,13 @@ const run = async (): Promise<void> => {
         await detachMarker(input)
         break
       default:
-        core.setFailed(`Undefined action: ${input.action}`)
+        onError(`Undefined action: ${input.action}`)
     }
   } catch (error) {
     if (error instanceof Error) {
-      core.setFailed(error.message)
+      onError(error.message)
     } else {
-      core.setFailed(`ERROR: ${JSON.stringify(error)}`)
+      onError(`ERROR: ${JSON.stringify(error)}`)
     }
   }
 }

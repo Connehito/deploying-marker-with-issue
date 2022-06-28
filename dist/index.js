@@ -39,19 +39,19 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const labels = (yield (0, label_get_1.getLabels)({ repoOwner, repoName, labelName: label_1.LabelName }))
         .data.organization.repository.labels.nodes;
     const label = labels.find(({ name }) => name === label_1.LabelName);
-    const labelId = label != null
-        ? label.id
-        : (yield (0, label_create_1.createLabel)({
+    let labelId = label === null || label === void 0 ? void 0 : label.id;
+    if (labelId == null) {
+        const createLabelResult = yield (0, label_create_1.createLabel)({
             repoOwner,
             repoName,
             labelName: label_1.LabelName
-        })).node_id;
+        });
+        labelId = createLabelResult.node_id;
+    }
     const issueId = issue.data.organization.repository.issue.id;
     yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds: [labelId] });
-    const comment = yield (0, issue_comment_create_1.createIssueComment)({
-        issueId,
-        body: `Attached \`${label_1.LabelName}\` label by ${refLink}, initiated this workflow by @${actor}`
-    });
+    const attachedMessage = (0, messages_1.getMessage)('issue_comment:attached', { refLink, actor });
+    const comment = yield (0, issue_comment_create_1.createIssueComment)({ issueId, body: attachedMessage });
     yield (0, issue_update_1.updateIssue)({
         issueId,
         body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
@@ -172,10 +172,8 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         .filter(({ name }) => name !== label_1.LabelName)
         .map(({ id }) => id);
     yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds });
-    const comment = yield (0, issue_comment_create_1.createIssueComment)({
-        issueId,
-        body: `Detached \`${label_1.LabelName}\` label by ${refLink}, initiated this workflow by @${actor}`
-    });
+    const detachedMessage = (0, messages_1.getMessage)('issue_comment:detached', { refLink, actor });
+    const comment = yield (0, issue_comment_create_1.createIssueComment)({ issueId, body: detachedMessage });
     yield (0, issue_update_1.updateIssue)({
         issueId,
         body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
@@ -360,6 +358,7 @@ exports.attachedMarkerOnIssue = attachedMarkerOnIssue;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getMessage = exports.updateIssueBody = void 0;
 const label_1 = __nccwpck_require__(6543);
+const error_1 = __nccwpck_require__(4966);
 const LatestLogCommentMarker = '<!-- LATEST_LOG_COMMENT_MARKER:LK2YMYBB -->';
 const updateIssueBody = (sourceBody, latestCommentUrl) => {
     const bodyLines = sourceBody.split(/\r?\n/g);
@@ -378,9 +377,16 @@ const updateIssueBody = (sourceBody, latestCommentUrl) => {
         .join('\n');
 };
 exports.updateIssueBody = updateIssueBody;
-const getMessage = (key) => {
-    const message = Messages[key];
+const getMessage = (key, variables = {}) => {
+    let message = Messages[key];
     if (message != null) {
+        for (const [variableKey, variableValue] of Object.entries(variables)) {
+            const beforeMessage = message;
+            message = message.replace(new RegExp(`{{${variableKey}}}`, 'g'), variableValue);
+            if (beforeMessage === message) {
+                (0, error_1.onError)(`{{${variableKey}}} not found in message: ${message}`);
+            }
+        }
         return message;
     }
     throw new Error(`Unknown message key: ${key}`);
@@ -398,7 +404,9 @@ const Messages = {
         `- If to attach "${label_1.LabelName}" label is no problem, please attach the label manually.`
     ].join('\n'),
     'warning:label_already_attached': `WARNING: "${label_1.LabelName}" label already attached, but not errored because exit-with-error is false.`,
-    'warning:label_already_detached': `WARNING: "${label_1.LabelName}" label already detached, but not errored because exit-with-error is false.`
+    'warning:label_already_detached': `WARNING: "${label_1.LabelName}" label already detached, but not errored because exit-with-error is false.`,
+    'issue_comment:attached': `:no_entry: Attached \`${label_1.LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`,
+    'issue_comment:detached': `:white_check_mark: Detached \`${label_1.LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`
 };
 
 
@@ -851,29 +859,6 @@ exports.getLabels = getLabels;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -884,12 +869,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
 const input_1 = __nccwpck_require__(5518);
 const attach_marker_1 = __nccwpck_require__(9780);
 const check_marker_attached_1 = __nccwpck_require__(6118);
 const check_marker_detached_1 = __nccwpck_require__(9922);
 const detach_marker_1 = __nccwpck_require__(811);
+const error_1 = __nccwpck_require__(4966);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const input = (0, input_1.getInput)();
@@ -907,15 +892,15 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 yield (0, detach_marker_1.detachMarker)(input);
                 break;
             default:
-                core.setFailed(`Undefined action: ${input.action}`);
+                (0, error_1.onError)(`Undefined action: ${input.action}`);
         }
     }
     catch (error) {
         if (error instanceof Error) {
-            core.setFailed(error.message);
+            (0, error_1.onError)(error.message);
         }
         else {
-            core.setFailed(`ERROR: ${JSON.stringify(error)}`);
+            (0, error_1.onError)(`ERROR: ${JSON.stringify(error)}`);
         }
     }
 });

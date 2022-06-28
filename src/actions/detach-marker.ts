@@ -25,10 +25,8 @@ export const detachMarker = async (input: Input): Promise<void> => {
     .map(({id}) => id)
 
   await updateIssue({issueId, body, labelIds})
-  const comment = await createIssueComment({
-    issueId,
-    body: `Detached \`${LabelName}\` label by ${refLink}, initiated this workflow by @${actor}`
-  })
+  const detachedMessage = getMessage('issue_comment:detached', {refLink, actor})
+  const comment = await createIssueComment({issueId, body: detachedMessage})
   await updateIssue({
     issueId,
     body: updateIssueBody(body, comment.data.addComment.commentEdge.node.url),

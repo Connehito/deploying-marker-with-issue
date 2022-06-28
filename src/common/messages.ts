@@ -1,4 +1,5 @@
 import {LabelName} from './label'
+import {onError} from './error'
 
 const LatestLogCommentMarker = '<!-- LATEST_LOG_COMMENT_MARKER:LK2YMYBB -->'
 export const updateIssueBody = (
@@ -23,9 +24,22 @@ export const updateIssueBody = (
     .join('\n')
 }
 
-export const getMessage = (key: keyof typeof Messages): string => {
-  const message = Messages[key]
+export const getMessage = (
+  key: keyof typeof Messages,
+  variables: Record<string, string> = {}
+): string => {
+  let message = Messages[key]
   if (message != null) {
+    for (const [variableKey, variableValue] of Object.entries(variables)) {
+      const beforeMessage = message
+      message = message.replace(
+        new RegExp(`{{${variableKey}}}`, 'g'),
+        variableValue
+      )
+      if (beforeMessage === message) {
+        onError(`{{${variableKey}}} not found in message: ${message}`)
+      }
+    }
     return message
   }
   throw new Error(`Unknown message key: ${key}`)
@@ -43,5 +57,7 @@ const Messages = {
     `- If to attach "${LabelName}" label is no problem, please attach the label manually.`
   ].join('\n'),
   'warning:label_already_attached': `WARNING: "${LabelName}" label already attached, but not errored because exit-with-error is false.`,
-  'warning:label_already_detached': `WARNING: "${LabelName}" label already detached, but not errored because exit-with-error is false.`
+  'warning:label_already_detached': `WARNING: "${LabelName}" label already detached, but not errored because exit-with-error is false.`,
+  'issue_comment:attached': `:no_entry: Attached \`${LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`,
+  'issue_comment:detached': `:white_check_mark: Detached \`${LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`
 }
