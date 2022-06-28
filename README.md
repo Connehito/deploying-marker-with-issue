@@ -2,7 +2,6 @@
 
 [![Check dist/](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/check-dist.yml/badge.svg)](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/check-dist.yml)
 [![CodeQL](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/codeql-analysis.yml)
-[![build-test](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/test.yml/badge.svg)](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/test.yml)
 [![example](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/example.yml/badge.svg)](https://github.com/Connehito/deploying-marker-with-issue/actions/workflows/example.yml)
 
 This action checks, attaches and detaches the "Deploying" label of GitHub Issue that indicating the deployment status.
