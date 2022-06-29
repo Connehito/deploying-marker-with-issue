@@ -26,7 +26,7 @@ For example, you want to check another deployment is not in progress.
   with:
     action: "check-marker-detached"
     issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-    exit-with-error: true # true = exit with error when the marker is not found
+    exit-with-error: true # true = exit with error when the marker is already exists
 ```
 
 ### 2. Attach marker
@@ -58,7 +58,7 @@ For example, you can use to check `Deployment` label has not detached.
   with:
     action: "check-marker-attached"
     issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-    exit-with-error: true # true = exit with error when the marker is found
+    exit-with-error: false # true = exit with error when the marker is not exists
 ```
 
 ### 4. Detach marker
