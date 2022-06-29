@@ -14,7 +14,7 @@ jobs:
         with:
           action: "check-marker-detached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-          exit-with-error: true # true = exit with error when the marker is not found
+          exit-with-error: true # true = exit with error when the marker is already exists
       - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -30,7 +30,7 @@ jobs:
         with:
           action: "check-marker-attached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-          exit-with-error: true # true = exit with error when the marker is found
+          exit-with-error: false # true = exit with error when the marker is not exists
       - uses: Connehito/deploying-marker-with-issue@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
