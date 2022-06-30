@@ -13,6 +13,17 @@ This action checks, attaches and detaches the "Deploying" label of GitHub Issue 
 - Workflow: [.github/workflows/example.yml](https://github.com/Connehito/deploying-marker-with-issue/blob/main/.github/workflows/example.yml)
 - Issue: [#21](https://github.com/Connehito/deploying-marker-with-issue/issues/21)
 
+### Permission
+
+`deploying-marker-with-issue` needs `issue: write` permission.
+
+```yaml
+permissions:
+  issues: write
+```
+
+Ref: [Assigning permissions to jobs - GitHub Docs](https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs)
+
 ### 1. Check marker detached
 
 Checks the Issue has not `Deploying` label.
