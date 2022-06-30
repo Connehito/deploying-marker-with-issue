@@ -4,6 +4,9 @@ on: push
 env:
   DEPLOYMENT_RECORD_ISSUE_NUMBER: 21
 
+permissions:
+  issues: write
+
 jobs:
   example: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
