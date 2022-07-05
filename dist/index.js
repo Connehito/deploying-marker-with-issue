@@ -105,6 +105,47 @@ exports.checkMarkerAttached = checkMarkerAttached;
 
 /***/ }),
 
+/***/ 377:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkMarkerDetachedOrAssignedActor = void 0;
+const label_1 = __nccwpck_require__(6543);
+const error_1 = __nccwpck_require__(4966);
+const messages_1 = __nccwpck_require__(4585);
+const issue_get_1 = __nccwpck_require__(2596);
+const checkMarkerDetachedOrAssignedActor = (input) => __awaiter(void 0, void 0, void 0, function* () {
+    const { repoOwner, repoName, issueNumber, exitWithError, actorId } = input;
+    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
+    const { assignees } = (yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber })).data
+        .organization.repository.issue;
+    const assigned = assignees.nodes.some(({ id }) => id === actorId);
+    if (!attached || assigned) {
+        return;
+    }
+    else if (exitWithError) {
+        (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_attached_and_not_assigned_actor'));
+    }
+    else {
+        (0, error_1.onWarning)((0, messages_1.getMessage)('warning:label_already_attached_and_not_assigned_actor'));
+    }
+});
+exports.checkMarkerDetachedOrAssignedActor = checkMarkerDetachedOrAssignedActor;
+
+
+/***/ }),
+
 /***/ 9922:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -422,8 +463,15 @@ const Messages = {
         '- Please check latest issue comments',
         `- If to attach "${label_1.LabelName}" label is no problem, please attach the label manually.`
     ].join('\n'),
+    'error:label_already_attached_and_not_assigned_actor': [
+        `ERROR: "${label_1.LabelName}" label already attached and not assigned actor.`,
+        '- Please check latest issue comments',
+        `- If to detach "${label_1.LabelName}" label is no problem, please attach the label manually.`,
+        `- If to remove actor in assignees is no problem, please remove assign manually.`
+    ].join('\n'),
     'warning:label_already_attached': `WARNING: "${label_1.LabelName}" label already attached, but not errored because exit-with-error is false.`,
     'warning:label_already_detached': `WARNING: "${label_1.LabelName}" label already detached, but not errored because exit-with-error is false.`,
+    'warning:label_already_attached_and_not_assigned_actor': `WARNING: "${label_1.LabelName}" label already attached and not assigned actor, but not errored because exit-with-error is false.`,
     'issue_comment:attached': `:no_entry: Attached \`${label_1.LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`,
     'issue_comment:detached': `:white_check_mark: Detached \`${label_1.LabelName}\` label by {{refLink}}, initiated this workflow by @{{actor}}`
 };
@@ -974,6 +1022,7 @@ const check_marker_attached_1 = __nccwpck_require__(6118);
 const check_marker_detached_1 = __nccwpck_require__(9922);
 const detach_marker_1 = __nccwpck_require__(811);
 const error_1 = __nccwpck_require__(4966);
+const check_marker_detached_or_assigned_actor_1 = __nccwpck_require__(377);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const input = yield (0, input_1.getInput)();
@@ -991,7 +1040,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                 yield (0, detach_marker_1.detachMarker)(input);
                 break;
             case 'check-marker-detached-or-assigned-actor':
-                // TODO
+                yield (0, check_marker_detached_or_assigned_actor_1.checkMarkerDetachedOrAssignedActor)(input);
                 break;
             default:
                 (0, error_1.onError)(`Undefined action: ${input.action}`);

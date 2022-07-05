@@ -25,6 +25,8 @@ jobs:
           action: "attach-marker"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
+      - name: Sleep 10s
+        run: sleep 10
       - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -32,15 +34,13 @@ jobs:
           action: "check-marker-detached-or-assigned-actor"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists and not assigned actor
-      - name: Sleep 10s
-        run: sleep 10
       - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-attached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-          exit-with-error: false # true = exit with error when the marker is not exists
+          exit-with-error: true # true = exit with error when the marker is not exists
       - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
         env:
           GITHUB_TOKEN: ${{ github.token }}
