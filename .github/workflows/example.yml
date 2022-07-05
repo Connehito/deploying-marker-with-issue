@@ -11,14 +11,14 @@ jobs:
   example: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
-      - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
+      - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-detached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
-      - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
+      - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -27,21 +27,21 @@ jobs:
           exit-with-error: true # true = exit with error when the marker is already exists
       - name: Sleep 10s
         run: sleep 10
-      - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
+      - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-detached-or-assigned-actor"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists and not assigned actor
-      - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
+      - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           action: "check-marker-attached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is not exists
-      - uses: Connehito/deploying-marker-with-issue@add-check-marker-detached-or-assigned-actor-action
+      - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
