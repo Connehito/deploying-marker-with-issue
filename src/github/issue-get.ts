@@ -25,10 +25,29 @@ const IssueSchema = {
                 issue: {
                   type: 'object',
                   additionalProperties: false,
-                  required: ['id', 'body', 'labels'],
+                  required: ['id', 'body', 'assignees', 'labels'],
                   properties: {
                     id: {type: 'string'},
                     body: {type: 'string'},
+                    assignees: {
+                      type: 'object',
+                      additionalProperties: false,
+                      required: ['nodes'],
+                      properties: {
+                        nodes: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            additionalProperties: false,
+                            required: ['id', 'login'],
+                            properties: {
+                              id: {type: 'string'},
+                              login: {type: 'string'}
+                            }
+                          }
+                        }
+                      }
+                    },
                     labels: {
                       type: 'object',
                       additionalProperties: false,
@@ -75,6 +94,12 @@ export const getIssue = async (
           issue(number: $issueNumber) {
             id
             body
+            assignees(first: 100) {
+              nodes {
+                id
+                login
+              }
+            }
             labels(first: 100) {
               nodes {
                 id

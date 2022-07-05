@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import {getUser} from '../github/user-get'
 
 export interface Input {
   action: string
@@ -8,9 +9,10 @@ export interface Input {
   repoName: string
   refLink: string
   actor: string
+  actorId: string
 }
 
-export const getInput = (): Input => {
+export const getInput = async (): Promise<Input> => {
   const action = core.getInput('action', {required: true})
   const issueNumber = parseInt(
     core.getInput('issue-number', {required: true}),
@@ -24,6 +26,7 @@ export const getInput = (): Input => {
   const [repoOwner, repoName] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
   const refLink = getRefLink(repoOwner, repoName)
   const actor = process.env.GITHUB_ACTOR ?? ''
+  const {id: actorId} = (await getUser({login: actor})).data.user
 
   return {
     action,
@@ -32,7 +35,8 @@ export const getInput = (): Input => {
     repoOwner,
     repoName,
     refLink,
-    actor
+    actor,
+    actorId
   }
 }
 

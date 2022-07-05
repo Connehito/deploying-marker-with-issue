@@ -9,8 +9,15 @@ import {getMessage, updateIssueBody} from '../common/messages'
 import {createIssueComment} from '../github/issue-comment-create'
 
 export const attachMarker = async (input: Input): Promise<void> => {
-  const {repoOwner, repoName, issueNumber, exitWithError, refLink, actor} =
-    input
+  const {
+    repoOwner,
+    repoName,
+    issueNumber,
+    exitWithError,
+    refLink,
+    actor,
+    actorId
+  } = input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (attached) {
@@ -20,8 +27,8 @@ export const attachMarker = async (input: Input): Promise<void> => {
     return
   }
 
-  const issue = await getIssue({repoOwner, repoName, issueNumber})
-  const {body} = issue.data.organization.repository.issue
+  const beforeIssueData = await getIssue({repoOwner, repoName, issueNumber})
+  const {issue: beforeIssue} = beforeIssueData.data.organization.repository
   const labels = (await getLabels({repoOwner, repoName, labelName: LabelName}))
     .data.organization.repository.labels.nodes
   const label = labels.find(({name}) => name === LabelName)
@@ -36,13 +43,23 @@ export const attachMarker = async (input: Input): Promise<void> => {
     labelId = createLabelResult.node_id
   }
 
-  const issueId = issue.data.organization.repository.issue.id
-  await updateIssue({issueId, body, labelIds: [labelId]})
+  const issueId = beforeIssueData.data.organization.repository.issue.id
+  await updateIssue({
+    issueId: beforeIssue.id,
+    body: beforeIssue.body,
+    assigneeIds: [actorId],
+    labelIds: [labelId]
+  })
+
   const attachedMessage = getMessage('issue_comment:attached', {refLink, actor})
   const comment = await createIssueComment({issueId, body: attachedMessage})
   await updateIssue({
     issueId,
-    body: updateIssueBody(body, comment.data.addComment.commentEdge.node.url),
+    body: updateIssueBody(
+      beforeIssue.body,
+      comment.data.addComment.commentEdge.node.url
+    ),
+    assigneeIds: [actorId],
     labelIds: [labelId]
   })
 }

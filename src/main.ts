@@ -5,10 +5,11 @@ import {checkMarkerAttached} from './actions/check-marker-attached'
 import {checkMarkerDetached} from './actions/check-marker-detached'
 import {detachMarker} from './actions/detach-marker'
 import {onError} from './common/error'
+import {checkMarkerDetachedOrAssignedActor} from './actions/check-marker-detached-or-assigned-actor'
 
 const run = async (): Promise<void> => {
   try {
-    const input = getInput()
+    const input = await getInput()
     switch (input.action) {
       case 'check-marker-attached':
         await checkMarkerAttached(input)
@@ -21,6 +22,9 @@ const run = async (): Promise<void> => {
         break
       case 'detach-marker':
         await detachMarker(input)
+        break
+      case 'check-marker-detached-or-assigned-actor':
+        await checkMarkerDetachedOrAssignedActor(input)
         break
       default:
         onError(`Undefined action: ${input.action}`)
