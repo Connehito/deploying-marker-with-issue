@@ -3,15 +3,16 @@ import {fetchGitHubGraphQL} from './common'
 interface Args {
   issueId: string
   body: string
+  assigneeIds: string[]
   labelIds: string[]
 }
 
 export const updateIssue = async (args: Args): Promise<void> => {
   await fetchGitHubGraphQL(
-    `mutation ($issueId: ID!, $body: String!, $labelIds: [ID!]) {
-       updateIssue(input: {id: $issueId, body: $body, labelIds: $labelIds}) {
-         clientMutationId
-       }
+    `mutation ($issueId: ID!, $body: String!, $assigneeIds: [ID!] $labelIds: [ID!]) {
+        updateIssue(input: {id: $issueId, body: $body, assigneeIds: $assigneeIds, labelIds: $labelIds}) {
+          clientMutationId
+        }
      }`,
     {...args}
   )

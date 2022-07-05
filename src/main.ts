@@ -8,7 +8,7 @@ import {onError} from './common/error'
 
 const run = async (): Promise<void> => {
   try {
-    const input = getInput()
+    const input = await getInput()
     switch (input.action) {
       case 'check-marker-attached':
         await checkMarkerAttached(input)

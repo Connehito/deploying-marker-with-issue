@@ -24,12 +24,13 @@ export const detachMarker = async (input: Input): Promise<void> => {
     .filter(({name}) => name !== LabelName)
     .map(({id}) => id)
 
-  await updateIssue({issueId, body, labelIds})
+  await updateIssue({issueId, body, assigneeIds: [], labelIds})
   const detachedMessage = getMessage('issue_comment:detached', {refLink, actor})
   const comment = await createIssueComment({issueId, body: detachedMessage})
   await updateIssue({
     issueId,
     body: updateIssueBody(body, comment.data.addComment.commentEdge.node.url),
+    assigneeIds: [],
     labelIds
   })
 }

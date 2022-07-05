@@ -26,7 +26,7 @@ const error_1 = __nccwpck_require__(4966);
 const messages_1 = __nccwpck_require__(4585);
 const issue_comment_create_1 = __nccwpck_require__(3173);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
-    const { repoOwner, repoName, issueNumber, exitWithError, refLink, actor } = input;
+    const { repoOwner, repoName, issueNumber, exitWithError, refLink, actor, actorId } = input;
     const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
     if (attached) {
         if (exitWithError) {
@@ -34,8 +34,8 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         }
         return;
     }
-    const issue = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
-    const { body } = issue.data.organization.repository.issue;
+    const beforeIssueData = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
+    const { issue: beforeIssue } = beforeIssueData.data.organization.repository;
     const labels = (yield (0, label_get_1.getLabels)({ repoOwner, repoName, labelName: label_1.LabelName }))
         .data.organization.repository.labels.nodes;
     const label = labels.find(({ name }) => name === label_1.LabelName);
@@ -48,13 +48,19 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         });
         labelId = createLabelResult.node_id;
     }
-    const issueId = issue.data.organization.repository.issue.id;
-    yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds: [labelId] });
+    const issueId = beforeIssueData.data.organization.repository.issue.id;
+    yield (0, issue_update_1.updateIssue)({
+        issueId: beforeIssue.id,
+        body: beforeIssue.body,
+        assigneeIds: [actorId],
+        labelIds: [labelId]
+    });
     const attachedMessage = (0, messages_1.getMessage)('issue_comment:attached', { refLink, actor });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({ issueId, body: attachedMessage });
     yield (0, issue_update_1.updateIssue)({
         issueId,
-        body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
+        body: (0, messages_1.updateIssueBody)(beforeIssue.body, comment.data.addComment.commentEdge.node.url),
+        assigneeIds: [actorId],
         labelIds: [labelId]
     });
 });
@@ -171,12 +177,13 @@ const detachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const labelIds = labels.nodes
         .filter(({ name }) => name !== label_1.LabelName)
         .map(({ id }) => id);
-    yield (0, issue_update_1.updateIssue)({ issueId, body, labelIds });
+    yield (0, issue_update_1.updateIssue)({ issueId, body, assigneeIds: [], labelIds });
     const detachedMessage = (0, messages_1.getMessage)('issue_comment:detached', { refLink, actor });
     const comment = yield (0, issue_comment_create_1.createIssueComment)({ issueId, body: detachedMessage });
     yield (0, issue_update_1.updateIssue)({
         issueId,
         body: (0, messages_1.updateIssueBody)(body, comment.data.addComment.commentEdge.node.url),
+        assigneeIds: [],
         labelIds
     });
 });
@@ -274,10 +281,20 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const getInput = () => {
+const user_get_1 = __nccwpck_require__(2072);
+const getInput = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const action = core.getInput('action', { required: true });
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
@@ -288,6 +305,7 @@ const getInput = () => {
     const [repoOwner, repoName] = ((_a = process.env.GITHUB_REPOSITORY) !== null && _a !== void 0 ? _a : '').split('/');
     const refLink = getRefLink(repoOwner, repoName);
     const actor = (_b = process.env.GITHUB_ACTOR) !== null && _b !== void 0 ? _b : '';
+    const { id: actorId } = (yield (0, user_get_1.getUser)({ login: actor })).data.user;
     return {
         action,
         issueNumber,
@@ -295,9 +313,10 @@ const getInput = () => {
         repoOwner,
         repoName,
         refLink,
-        actor
+        actor,
+        actorId
     };
-};
+});
 exports.getInput = getInput;
 const getRefLink = (repoOwner, repoName) => {
     var _a, _b;
@@ -610,10 +629,29 @@ const IssueSchema = {
                                 issue: {
                                     type: 'object',
                                     additionalProperties: false,
-                                    required: ['id', 'body', 'labels'],
+                                    required: ['id', 'body', 'assignees', 'labels'],
                                     properties: {
                                         id: { type: 'string' },
                                         body: { type: 'string' },
+                                        assignees: {
+                                            type: 'object',
+                                            additionalProperties: false,
+                                            required: ['nodes'],
+                                            properties: {
+                                                nodes: {
+                                                    type: 'array',
+                                                    items: {
+                                                        type: 'object',
+                                                        additionalProperties: false,
+                                                        required: ['id', 'login'],
+                                                        properties: {
+                                                            id: { type: 'string' },
+                                                            login: { type: 'string' }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
                                         labels: {
                                             type: 'object',
                                             additionalProperties: false,
@@ -650,6 +688,12 @@ const getIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
           issue(number: $issueNumber) {
             id
             body
+            assignees(first: 100) {
+              nodes {
+                id
+                login
+              }
+            }
             labels(first: 100) {
               nodes {
                 id
@@ -685,10 +729,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateIssue = void 0;
 const common_1 = __nccwpck_require__(9465);
 const updateIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!, $labelIds: [ID!]) {
-       updateIssue(input: {id: $issueId, body: $body, labelIds: $labelIds}) {
-         clientMutationId
-       }
+    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!, $assigneeIds: [ID!] $labelIds: [ID!]) {
+        updateIssue(input: {id: $issueId, body: $body, assigneeIds: $assigneeIds, labelIds: $labelIds}) {
+          clientMutationId
+        }
      }`, Object.assign({}, args));
 });
 exports.updateIssue = updateIssue;
@@ -854,6 +898,61 @@ exports.getLabels = getLabels;
 
 /***/ }),
 
+/***/ 2072:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getUser = void 0;
+const validater_1 = __nccwpck_require__(5878);
+const common_1 = __nccwpck_require__(9465);
+const UserSchema = {
+    type: 'object',
+    additionalProperties: false,
+    required: ['data'],
+    properties: {
+        data: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['user'],
+            properties: {
+                user: {
+                    type: 'object',
+                    additionalProperties: false,
+                    required: ['id'],
+                    properties: {
+                        id: {
+                            type: 'string'
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+const getUser = (args) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($login: String!) {
+       user(login: $login) {
+         id
+       }
+     }`, Object.assign({}, args));
+    return (0, validater_1.buildValidator)(UserSchema)(result);
+});
+exports.getUser = getUser;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -877,7 +976,7 @@ const detach_marker_1 = __nccwpck_require__(811);
 const error_1 = __nccwpck_require__(4966);
 const run = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const input = (0, input_1.getInput)();
+        const input = yield (0, input_1.getInput)();
         switch (input.action) {
             case 'check-marker-attached':
                 yield (0, check_marker_attached_1.checkMarkerAttached)(input);
