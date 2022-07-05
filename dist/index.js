@@ -891,6 +891,9 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
             case 'detach-marker':
                 yield (0, detach_marker_1.detachMarker)(input);
                 break;
+            case 'check-marker-detached-or-assigned-actor':
+                // TODO
+                break;
             default:
                 (0, error_1.onError)(`Undefined action: ${input.action}`);
         }

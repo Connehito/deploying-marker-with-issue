@@ -22,6 +22,9 @@ const run = async (): Promise<void> => {
       case 'detach-marker':
         await detachMarker(input)
         break
+      case 'check-marker-detached-or-assigned-actor':
+        // TODO
+        break
       default:
         onError(`Undefined action: ${input.action}`)
     }
