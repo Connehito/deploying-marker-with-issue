@@ -11,6 +11,7 @@ jobs:
   example: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -18,6 +19,7 @@ jobs:
           action: "check-marker-detached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -25,8 +27,10 @@ jobs:
           action: "attach-marker"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
-      - name: Sleep 10s
-        run: sleep 10
+
+#      - name: Sleep 10s
+#        run: sleep 10
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -34,6 +38,7 @@ jobs:
           action: "check-marker-detached-or-assigned-actor"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists and not assigned actor
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -41,6 +46,7 @@ jobs:
           action: "check-marker-attached"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is not exists
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -48,3 +54,18 @@ jobs:
           action: "detach-marker"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: false # true = exit with error when the marker is not exists
+
+      - name: Set ref link
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "branch" ]]; then
+            echo "REF_LINK=[${GITHUB_SHA:0:8}](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})" >> "${GITHUB_ENV}"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            echo "REF_LINK=[${GITHUB_REF_NAME}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME})" >> "${GITHUB_ENV}"
+          fi
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
+          body: |
+            @${{ github.actor }}
+            `example.yml` workflow finished by ${{ env.REF_LINK }}
