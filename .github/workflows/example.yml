@@ -2,7 +2,7 @@ name: 'example'
 on: push
 
 env:
-  DEPLOYMENT_RECORD_ISSUE_NUMBER: 21
+  DEPLOYMENT_RECORD_ISSUE_NUMBER: 28
 
 permissions:
   issues: write
