@@ -5,19 +5,10 @@ import {getLabels} from '../github/label-get'
 import {attachedMarkerOnIssue, LabelName} from '../common/label'
 import {createLabel} from '../github/label-create'
 import {onError} from '../common/error'
-import {getMessage, updateIssueBody} from '../common/messages'
-import {createIssueComment} from '../github/issue-comment-create'
+import {getMessage} from '../common/messages'
 
 export const attachMarker = async (input: Input): Promise<void> => {
-  const {
-    repoOwner,
-    repoName,
-    issueNumber,
-    exitWithError,
-    refLink,
-    actor,
-    actorId
-  } = input
+  const {repoOwner, repoName, issueNumber, exitWithError, actorId} = input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (attached) {
@@ -28,7 +19,7 @@ export const attachMarker = async (input: Input): Promise<void> => {
   }
 
   const beforeIssueData = await getIssue({repoOwner, repoName, issueNumber})
-  const {issue: beforeIssue} = beforeIssueData.data.organization.repository
+  const {issue} = beforeIssueData.data.organization.repository
   const labels = (await getLabels({repoOwner, repoName, labelName: LabelName}))
     .data.organization.repository.labels.nodes
   const label = labels.find(({name}) => name === LabelName)
@@ -43,22 +34,9 @@ export const attachMarker = async (input: Input): Promise<void> => {
     labelId = createLabelResult.node_id
   }
 
-  const issueId = beforeIssueData.data.organization.repository.issue.id
   await updateIssue({
-    issueId: beforeIssue.id,
-    body: beforeIssue.body,
-    assigneeIds: [actorId],
-    labelIds: [labelId]
-  })
-
-  const attachedMessage = getMessage('issue_comment:attached', {refLink, actor})
-  const comment = await createIssueComment({issueId, body: attachedMessage})
-  await updateIssue({
-    issueId,
-    body: updateIssueBody(
-      beforeIssue.body,
-      comment.data.addComment.commentEdge.node.url
-    ),
+    issueId: issue.id,
+    body: issue.body,
     assigneeIds: [actorId],
     labelIds: [labelId]
   })
