@@ -6,7 +6,7 @@ import {onError} from '../common/error'
 import {getMessage} from '../common/messages'
 
 export const detachMarker = async (input: Input): Promise<void> => {
-  const {repoOwner, repoName, issueNumber, exitWithError, actor} = input
+  const {repoOwner, repoName, issueNumber, exitWithError} = input
 
   const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
   if (!attached) {

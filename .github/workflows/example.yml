@@ -28,8 +28,8 @@ jobs:
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
 
-#      - name: Sleep 10s
-#        run: sleep 10
+      - name: Sleep 20s
+        run: sleep 20
 
       - uses: Connehito/deploying-marker-with-issue@main
         env:
