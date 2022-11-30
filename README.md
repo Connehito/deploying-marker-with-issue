@@ -11,7 +11,7 @@ This action checks, attaches and detaches the "Deploying" label of GitHub Issue 
 ### Example workflow and issue
 
 - Workflow: [.github/workflows/example.yml](https://github.com/Connehito/deploying-marker-with-issue/blob/main/.github/workflows/example.yml)
-- Issue: [#21](https://github.com/Connehito/deploying-marker-with-issue/issues/21)
+- Issue: [#28](https://github.com/Connehito/deploying-marker-with-issue/issues/28)
 
 ### Permission
 
