@@ -8,7 +8,7 @@ permissions:
   issues: write
 
 jobs:
-  example: # make sure the action works on a clean machine without building
+  example:
     runs-on: ubuntu-latest
     steps:
 
@@ -62,6 +62,7 @@ jobs:
           elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             echo "REF_LINK=[${GITHUB_REF_NAME}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME})" >> "${GITHUB_ENV}"
           fi
+
       - name: Create comment
         uses: peter-evans/create-or-update-comment@v2
         with:
