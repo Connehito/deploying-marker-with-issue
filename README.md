@@ -31,7 +31,7 @@ If the Issue already has `Deploying` label and specified `exit-with-error: true`
 For example, you want to check another deployment is not in progress.
 
 ```yaml
-- uses: Connehito/deploying-marker-with-issue@v1
+- uses: Connehito/deploying-marker-with-issue@v2
   env:
     GITHUB_TOKEN: ${{ github.token }}
   with:
@@ -47,7 +47,7 @@ If the Issue already has `Deploying` label and specified `exit-with-error: true`
 It is intended to be used at the start of a deployment.
 
 ```yaml
-- uses: Connehito/deploying-marker-with-issue@v1
+- uses: Connehito/deploying-marker-with-issue@v2
   env:
     GITHUB_TOKEN: ${{ github.token }}
   with:
@@ -63,7 +63,7 @@ If the Issue has not `Deploying` label and specified `exit-with-error: true`, an
 For example, you can use to check `Deployment` label has not detached.
 
 ```yaml
-- uses: Connehito/deploying-marker-with-issue@v1
+- uses: Connehito/deploying-marker-with-issue@v2
   env:
     GITHUB_TOKEN: ${{ github.token }}
   with:
@@ -79,7 +79,7 @@ If the Issue has not `Deploying` label and specified `exit-with-error: true`, an
 It is intended to be used at the end of a deployment.
 
 ```yaml
-- uses: Connehito/deploying-marker-with-issue@v1
+- uses: Connehito/deploying-marker-with-issue@v2
   env:
     GITHUB_TOKEN: ${{ github.token }}
   with:
