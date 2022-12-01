@@ -10,13 +10,13 @@ import {getMessage} from '../common/messages'
 export const attachMarker = async (input: Input): Promise<void> => {
   const {repoOwner, repoName, issueNumber, exitWithError, actorId} = input
 
-  // const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
-  // if (attached) {
-  //   if (exitWithError) {
-  //     onError(getMessage('error:label_already_attached'))
-  //   }
-  //   return
-  // }
+  const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
+  if (attached) {
+    if (exitWithError) {
+      onError(getMessage('error:label_already_attached'))
+    }
+    return
+  }
 
   const beforeIssueData = await getIssue({repoOwner, repoName, issueNumber})
   const {issue} = beforeIssueData.data.organization.repository
@@ -34,13 +34,10 @@ export const attachMarker = async (input: Input): Promise<void> => {
     labelId = createLabelResult.node_id
   }
 
-  for (let i = 0; i < 100; i++) {
-    console.debug('###', i)
-    await updateIssue({
-      issueId: issue.id,
-      body: issue.body,
-      assigneeIds: [actorId],
-      labelIds: [labelId]
-    })
-  }
+  await updateIssue({
+    issueId: issue.id,
+    body: issue.body,
+    assigneeIds: [actorId],
+    labelIds: [labelId]
+  })
 }

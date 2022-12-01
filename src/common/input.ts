@@ -13,13 +13,18 @@ export interface Input {
 }
 
 export const getInput = async (): Promise<Input> => {
-  const action = 'attach-marker' //core.getInput('action', {required: true})
-  const issueNumber = 28 //parseInt( core.getInput('issue-number', {required: true}), 10 )
-  const exitWithError = false // core.getBooleanInput('exit-with-error', { required: false })
+  const action = core.getInput('action', {required: true})
+  const issueNumber = parseInt(
+    core.getInput('issue-number', {required: true}),
+    10
+  )
+  const exitWithError = core.getBooleanInput('exit-with-error', {
+    required: false
+  })
 
   // https://docs.github.com/en/actions/learn-github-actions/environment-variables
-  const [repoOwner, repoName] = ['Connehito', 'deploying-marker-with-issue'] // getEnvVar('GITHUB_REPOSITORY').split('/')
-  const actor = 'mryhryki' // getEnvVar('GITHUB_ACTOR')
+  const [repoOwner, repoName] = getEnvVar('GITHUB_REPOSITORY').split('/')
+  const actor = getEnvVar('GITHUB_ACTOR')
   const {id: actorId} = (await getUser({login: actor})).data.user
 
   return {
