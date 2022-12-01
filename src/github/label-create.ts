@@ -58,7 +58,7 @@ export const createLabel = async (
   args: Args
 ): Promise<FromSchema<typeof Schema>> => {
   const {repoOwner, repoName, labelName, labelColor, labelDescription} = args
-  const response = await fetchGitHubApiV3(
+  const data = await fetchGitHubApiV3(
     'POST',
     `/repos/${repoOwner}/${repoName}/labels`,
     JSON.stringify({
@@ -67,5 +67,5 @@ export const createLabel = async (
       description: labelDescription ?? DefaultLabelDescription
     })
   )
-  return buildValidator(Schema)(await response.json())
+  return buildValidator(Schema)(data)
 }
