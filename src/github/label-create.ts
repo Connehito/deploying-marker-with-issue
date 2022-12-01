@@ -67,5 +67,5 @@ export const createLabel = async (
       description: labelDescription ?? DefaultLabelDescription
     })
   )
-  return buildValidator(Schema)(response.data)
+  return buildValidator(Schema)(await response.json())
 }

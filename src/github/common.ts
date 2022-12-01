@@ -1,45 +1,44 @@
-import axios, {AxiosResponse} from 'axios'
+import fetch, {Response} from 'node-fetch'
 import {getEnvVar} from '../common/env'
 
 export const fetchGitHubGraphQL = async (
   query: string,
   variables: Record<string, unknown> = {}
 ): Promise<unknown> => {
-  const {status, data} = await axios.post(
-    'https://api.github.com/graphql',
-    {query, variables},
-    {
-      headers: {
-        Authorization: `token ${getEnvVar('GITHUB_TOKEN')}`
-      }
-    }
-  )
-  if (status !== 200) throw new Error(`Invalid status code: ${status}`)
-  if (typeof data === 'object' && data != null && 'errors' in data) {
-    throw new Error(`Response has error: ${JSON.stringify(data)}`)
+  const response = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      Authorization: `token ${getEnvVar('GITHUB_TOKEN')}`
+    },
+    body: JSON.stringify({query, variables})
+  })
+  if (response.status !== 200)
+    throw new Error(`Invalid status code: ${response.status}`)
+  const body = await response.json()
+  if (typeof body === 'object' && body != null && 'errors' in body) {
+    throw new Error(`Response has error: ${JSON.stringify(body)}`)
   }
-  return data
+  return body
 }
 
 export const fetchGitHubApiV3 = async (
   method: string,
   path: string,
   body = ''
-): Promise<AxiosResponse> => {
-  const response = await axios.request({
-    url: `https://api.github.com${path}`,
+): Promise<Response> => {
+  const response = await fetch(`https://api.github.com${path}`, {
     method,
     headers: {
       Accept: 'application/vnd.github.v3+json',
       Authorization: `token ${getEnvVar('GITHUB_TOKEN')}`
     },
-    data: body
+    body
   })
-  if (response.status < 200 || 206 < response.status)
+  if (!response.ok)
     throw new Error(
-      `Invalid status code: ${response.status} => ${JSON.stringify(
-        response.data ?? '(Empty body)'
-      )}`
+      `Invalid status code: ${response.status} => ${
+        (await response.text()) ?? '(Empty body)'
+      }`
     )
   return response
 }
