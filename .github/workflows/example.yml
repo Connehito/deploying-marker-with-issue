@@ -1,5 +1,8 @@
 name: 'example'
-on: push
+on:
+  push:
+    branches:
+      - "main"
 
 env:
   DEPLOYMENT_RECORD_ISSUE_NUMBER: 28
