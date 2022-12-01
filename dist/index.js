@@ -459,7 +459,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.fetchGitHubApiV3 = exports.fetchGitHubGraphQL = void 0;
-const node_fetch_1 = __importDefault(__nccwpck_require__(7580));
+const node_fetch_1 = __importDefault(__nccwpck_require__(4429));
 const env_1 = __nccwpck_require__(5284);
 const fetchGitHubGraphQL = (query, variables = {}) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield (0, node_fetch_1.default)('https://api.github.com/graphql', {
@@ -8500,6 +8500,29 @@ function escapeJsonPtr(str) {
 
 /***/ }),
 
+/***/ 7760:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+/*! node-domexception. MIT License. Jimmy Wärting <https://jimmy.warting.se/opensource> */
+
+if (!globalThis.DOMException) {
+  try {
+    const { MessageChannel } = __nccwpck_require__(1267),
+    port = new MessageChannel().port1,
+    ab = new ArrayBuffer()
+    port.postMessage(ab, [ab, ab])
+  } catch (err) {
+    err.constructor.name === 'DOMException' && (
+      globalThis.DOMException = err.constructor
+    )
+  }
+}
+
+module.exports = globalThis.DOMException
+
+
+/***/ }),
+
 /***/ 4294:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -15158,22 +15181,6 @@ module.exports = require("net");
 
 /***/ }),
 
-/***/ 7561:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:fs");
-
-/***/ }),
-
-/***/ 9411:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("node:path");
-
-/***/ }),
-
 /***/ 7742:
 /***/ ((module) => {
 
@@ -15346,6 +15353,144 @@ const _File = class File extends _index_js__WEBPACK_IMPORTED_MODULE_0__/* ["defa
 /** @type {typeof globalThis.File} */// @ts-ignore
 const File = _File
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (File);
+
+
+/***/ }),
+
+/***/ 2777:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "t6": () => (/* reexport */ fetch_blob/* default */.Z),
+  "$B": () => (/* reexport */ file/* default */.Z),
+  "xB": () => (/* binding */ blobFrom),
+  "SX": () => (/* binding */ blobFromSync),
+  "e2": () => (/* binding */ fileFrom),
+  "RA": () => (/* binding */ fileFromSync)
+});
+
+// UNUSED EXPORTS: default
+
+;// CONCATENATED MODULE: external "node:fs"
+const external_node_fs_namespaceObject = require("node:fs");
+;// CONCATENATED MODULE: external "node:path"
+const external_node_path_namespaceObject = require("node:path");
+// EXTERNAL MODULE: ./node_modules/node-domexception/index.js
+var node_domexception = __nccwpck_require__(7760);
+// EXTERNAL MODULE: ./node_modules/fetch-blob/file.js
+var file = __nccwpck_require__(3213);
+// EXTERNAL MODULE: ./node_modules/fetch-blob/index.js
+var fetch_blob = __nccwpck_require__(1410);
+;// CONCATENATED MODULE: ./node_modules/fetch-blob/from.js
+
+
+
+
+
+
+
+const { stat } = external_node_fs_namespaceObject.promises
+
+/**
+ * @param {string} path filepath on the disk
+ * @param {string} [type] mimetype to use
+ */
+const blobFromSync = (path, type) => fromBlob((0,external_node_fs_namespaceObject.statSync)(path), path, type)
+
+/**
+ * @param {string} path filepath on the disk
+ * @param {string} [type] mimetype to use
+ * @returns {Promise<Blob>}
+ */
+const blobFrom = (path, type) => stat(path).then(stat => fromBlob(stat, path, type))
+
+/**
+ * @param {string} path filepath on the disk
+ * @param {string} [type] mimetype to use
+ * @returns {Promise<File>}
+ */
+const fileFrom = (path, type) => stat(path).then(stat => fromFile(stat, path, type))
+
+/**
+ * @param {string} path filepath on the disk
+ * @param {string} [type] mimetype to use
+ */
+const fileFromSync = (path, type) => fromFile((0,external_node_fs_namespaceObject.statSync)(path), path, type)
+
+// @ts-ignore
+const fromBlob = (stat, path, type = '') => new fetch_blob/* default */.Z([new BlobDataItem({
+  path,
+  size: stat.size,
+  lastModified: stat.mtimeMs,
+  start: 0
+})], { type })
+
+// @ts-ignore
+const fromFile = (stat, path, type = '') => new file/* default */.Z([new BlobDataItem({
+  path,
+  size: stat.size,
+  lastModified: stat.mtimeMs,
+  start: 0
+})], (0,external_node_path_namespaceObject.basename)(path), { type, lastModified: stat.mtimeMs })
+
+/**
+ * This is a blob backed up by a file on the disk
+ * with minium requirement. Its wrapped around a Blob as a blobPart
+ * so you have no direct access to this.
+ *
+ * @private
+ */
+class BlobDataItem {
+  #path
+  #start
+
+  constructor (options) {
+    this.#path = options.path
+    this.#start = options.start
+    this.size = options.size
+    this.lastModified = options.lastModified
+    this.originalSize = options.originalSize === undefined
+      ? options.size
+      : options.originalSize
+  }
+
+  /**
+   * Slicing arguments is first validated and formatted
+   * to not be out of range by Blob.prototype.slice
+   */
+  slice (start, end) {
+    return new BlobDataItem({
+      path: this.#path,
+      lastModified: this.lastModified,
+      originalSize: this.originalSize,
+      size: end - start,
+      start: this.#start + start
+    })
+  }
+
+  async * stream () {
+    const { mtimeMs, size } = await stat(this.#path)
+
+    if (mtimeMs > this.lastModified || this.originalSize !== size) {
+      throw new node_domexception('The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.', 'NotReadableError')
+    }
+
+    yield * (0,external_node_fs_namespaceObject.createReadStream)(this.#path, {
+      start: this.#start,
+      end: this.#start + this.size - 1
+    })
+  }
+
+  get [Symbol.toStringTag] () {
+    return 'Blob'
+  }
+}
+
+/* harmony default export */ const from = ((/* unused pure expression or super */ null && (blobFromSync)));
+
 
 
 /***/ }),
@@ -15672,7 +15817,7 @@ return new B(c,{type:"multipart/form-data; boundary="+b})}
 
 /***/ }),
 
-/***/ 7580:
+/***/ 4429:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
@@ -15682,11 +15827,18 @@ __nccwpck_require__.r(__webpack_exports__);
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
   "AbortError": () => (/* reexport */ AbortError),
+  "Blob": () => (/* reexport */ from/* Blob */.t6),
   "FetchError": () => (/* reexport */ FetchError),
+  "File": () => (/* reexport */ from/* File */.$B),
+  "FormData": () => (/* reexport */ esm_min/* FormData */.Ct),
   "Headers": () => (/* reexport */ Headers),
   "Request": () => (/* reexport */ Request),
   "Response": () => (/* reexport */ Response),
+  "blobFrom": () => (/* reexport */ from/* blobFrom */.xB),
+  "blobFromSync": () => (/* reexport */ from/* blobFromSync */.SX),
   "default": () => (/* binding */ fetch),
+  "fileFrom": () => (/* reexport */ from/* fileFrom */.e2),
+  "fileFromSync": () => (/* reexport */ from/* fileFromSync */.RA),
   "isRedirect": () => (/* reexport */ isRedirect)
 });
 
@@ -15698,6 +15850,8 @@ const external_node_https_namespaceObject = require("node:https");
 const external_node_zlib_namespaceObject = require("node:zlib");
 ;// CONCATENATED MODULE: external "node:stream"
 const external_node_stream_namespaceObject = require("node:stream");
+;// CONCATENATED MODULE: external "node:buffer"
+const external_node_buffer_namespaceObject = require("node:buffer");
 ;// CONCATENATED MODULE: ./node_modules/data-uri-to-buffer/dist/index.js
 /**
  * Returns a `Buffer` instance from the given data URI `uri`.
@@ -15865,6 +16019,35 @@ const isAbortSignal = object => {
 	);
 };
 
+/**
+ * isDomainOrSubdomain reports whether sub is a subdomain (or exact match) of
+ * the parent domain.
+ *
+ * Both domains must already be in canonical form.
+ * @param {string|URL} original
+ * @param {string|URL} destination
+ */
+const isDomainOrSubdomain = (destination, original) => {
+	const orig = new URL(original).hostname;
+	const dest = new URL(destination).hostname;
+
+	return orig === dest || orig.endsWith(`.${dest}`);
+};
+
+/**
+ * isSameProtocol reports whether the two provided URLs use the same protocol.
+ *
+ * Both domains must already be in canonical form.
+ * @param {string|URL} original
+ * @param {string|URL} destination
+ */
+const isSameProtocol = (destination, original) => {
+	const orig = new URL(original).protocol;
+	const dest = new URL(destination).protocol;
+
+	return orig === dest;
+};
+
 ;// CONCATENATED MODULE: ./node_modules/node-fetch/src/body.js
 
 /**
@@ -15883,6 +16066,8 @@ const isAbortSignal = object => {
 
 
 
+
+const pipeline = (0,external_node_util_namespaceObject.promisify)(external_node_stream_namespaceObject.pipeline);
 const INTERNALS = Symbol('Body internals');
 
 /**
@@ -15905,17 +16090,17 @@ class Body {
 			body = null;
 		} else if (isURLSearchParameters(body)) {
 			// Body is a URLSearchParams
-			body = Buffer.from(body.toString());
+			body = external_node_buffer_namespaceObject.Buffer.from(body.toString());
 		} else if (isBlob(body)) {
 			// Body is blob
-		} else if (Buffer.isBuffer(body)) {
+		} else if (external_node_buffer_namespaceObject.Buffer.isBuffer(body)) {
 			// Body is Buffer
 		} else if (external_node_util_namespaceObject.types.isAnyArrayBuffer(body)) {
 			// Body is ArrayBuffer
-			body = Buffer.from(body);
+			body = external_node_buffer_namespaceObject.Buffer.from(body);
 		} else if (ArrayBuffer.isView(body)) {
 			// Body is ArrayBufferView
-			body = Buffer.from(body.buffer, body.byteOffset, body.byteLength);
+			body = external_node_buffer_namespaceObject.Buffer.from(body.buffer, body.byteOffset, body.byteLength);
 		} else if (body instanceof external_node_stream_namespaceObject) {
 			// Body is stream
 		} else if (body instanceof esm_min/* FormData */.Ct) {
@@ -15925,12 +16110,12 @@ class Body {
 		} else {
 			// None of the above
 			// coerce to string then buffer
-			body = Buffer.from(String(body));
+			body = external_node_buffer_namespaceObject.Buffer.from(String(body));
 		}
 
 		let stream = body;
 
-		if (Buffer.isBuffer(body)) {
+		if (external_node_buffer_namespaceObject.Buffer.isBuffer(body)) {
 			stream = external_node_stream_namespaceObject.Readable.from(body);
 		} else if (isBlob(body)) {
 			stream = external_node_stream_namespaceObject.Readable.from(body.stream());
@@ -15987,7 +16172,7 @@ class Body {
 			return formData;
 		}
 
-		const {toFormData} = await __nccwpck_require__.e(/* import() */ 905).then(__nccwpck_require__.bind(__nccwpck_require__, 9905));
+		const {toFormData} = await __nccwpck_require__.e(/* import() */ 37).then(__nccwpck_require__.bind(__nccwpck_require__, 4037));
 		return toFormData(this.body, ct);
 	}
 
@@ -15998,7 +16183,7 @@ class Body {
 	 */
 	async blob() {
 		const ct = (this.headers && this.headers.get('content-type')) || (this[INTERNALS].body && this[INTERNALS].body.type) || '';
-		const buf = await this.buffer();
+		const buf = await this.arrayBuffer();
 
 		return new fetch_blob/* default */.Z([buf], {
 			type: ct
@@ -16011,8 +16196,8 @@ class Body {
 	 * @return  Promise
 	 */
 	async json() {
-		const buffer = await consumeBody(this);
-		return JSON.parse(buffer.toString());
+		const text = await this.text();
+		return JSON.parse(text);
 	}
 
 	/**
@@ -16022,7 +16207,7 @@ class Body {
 	 */
 	async text() {
 		const buffer = await consumeBody(this);
-		return buffer.toString();
+		return new TextDecoder().decode(buffer);
 	}
 
 	/**
@@ -16044,7 +16229,10 @@ Object.defineProperties(Body.prototype, {
 	arrayBuffer: {enumerable: true},
 	blob: {enumerable: true},
 	json: {enumerable: true},
-	text: {enumerable: true}
+	text: {enumerable: true},
+	data: {get: (0,external_node_util_namespaceObject.deprecate)(() => {},
+		'data doesn\'t exist, use json(), text(), arrayBuffer(), or body instead',
+		'https://github.com/node-fetch/node-fetch/issues/1000 (response)')}
 });
 
 /**
@@ -16069,12 +16257,12 @@ async function consumeBody(data) {
 
 	// Body is null
 	if (body === null) {
-		return Buffer.alloc(0);
+		return external_node_buffer_namespaceObject.Buffer.alloc(0);
 	}
 
 	/* c8 ignore next 3 */
 	if (!(body instanceof external_node_stream_namespaceObject)) {
-		return Buffer.alloc(0);
+		return external_node_buffer_namespaceObject.Buffer.alloc(0);
 	}
 
 	// Body is stream
@@ -16101,10 +16289,10 @@ async function consumeBody(data) {
 	if (body.readableEnded === true || body._readableState.ended === true) {
 		try {
 			if (accum.every(c => typeof c === 'string')) {
-				return Buffer.from(accum.join(''));
+				return external_node_buffer_namespaceObject.Buffer.from(accum.join(''));
 			}
 
-			return Buffer.concat(accum, accumBytes);
+			return external_node_buffer_namespaceObject.Buffer.concat(accum, accumBytes);
 		} catch (error) {
 			throw new FetchError(`Could not create Buffer from response body for ${data.url}: ${error.message}`, 'system', error);
 		}
@@ -16184,7 +16372,7 @@ const extractContentType = (body, request) => {
 	}
 
 	// Body is a Buffer (Buffer, ArrayBuffer or ArrayBufferView)
-	if (Buffer.isBuffer(body) || external_node_util_namespaceObject.types.isAnyArrayBuffer(body) || ArrayBuffer.isView(body)) {
+	if (external_node_buffer_namespaceObject.Buffer.isBuffer(body) || external_node_util_namespaceObject.types.isAnyArrayBuffer(body) || ArrayBuffer.isView(body)) {
 		return null;
 	}
 
@@ -16229,7 +16417,7 @@ const getTotalBytes = request => {
 	}
 
 	// Body is Buffer
-	if (Buffer.isBuffer(body)) {
+	if (external_node_buffer_namespaceObject.Buffer.isBuffer(body)) {
 		return body.length;
 	}
 
@@ -16247,15 +16435,15 @@ const getTotalBytes = request => {
  *
  * @param {Stream.Writable} dest The stream to write to.
  * @param obj.body Body object from the Body instance.
- * @returns {void}
+ * @returns {Promise<void>}
  */
-const writeToStream = (dest, {body}) => {
+const writeToStream = async (dest, {body}) => {
 	if (body === null) {
 		// Body is null
 		dest.end();
 	} else {
 		// Body is stream
-		body.pipe(dest);
+		await pipeline(body, dest);
 	}
 };
 
@@ -16269,6 +16457,7 @@ const writeToStream = (dest, {body}) => {
 
 
 
+/* c8 ignore next 9 */
 const validateHeaderName = typeof external_node_http_namespaceObject.validateHeaderName === 'function' ?
 	external_node_http_namespaceObject.validateHeaderName :
 	name => {
@@ -16279,6 +16468,7 @@ const validateHeaderName = typeof external_node_http_namespaceObject.validateHea
 		}
 	};
 
+/* c8 ignore next 9 */
 const validateHeaderValue = typeof external_node_http_namespaceObject.validateHeaderValue === 'function' ?
 	external_node_http_namespaceObject.validateHeaderValue :
 	(name, value) => {
@@ -16403,8 +16593,8 @@ class Headers extends URLSearchParams {
 						return Reflect.get(target, p, receiver);
 				}
 			}
-			/* c8 ignore next */
 		});
+		/* c8 ignore next */
 	}
 
 	get [Symbol.toStringTag]() {
@@ -16695,8 +16885,8 @@ const getSearch = parsedURL => {
 	return parsedURL.href[lastOffset - hash.length] === '?' ? '?' : '';
 };
 
-// EXTERNAL MODULE: external "net"
-var external_net_ = __nccwpck_require__(1808);
+;// CONCATENATED MODULE: external "node:net"
+const external_node_net_namespaceObject = require("node:net");
 ;// CONCATENATED MODULE: ./node_modules/node-fetch/src/utils/referrer.js
 
 
@@ -16806,7 +16996,7 @@ function isOriginPotentiallyTrustworthy(url) {
 
 	// 4. If origin's host component matches one of the CIDR notations 127.0.0.0/8 or ::1/128 [RFC4632], return "Potentially Trustworthy".
 	const hostIp = url.host.replace(/(^\[)|(]$)/g, '');
-	const hostIPVersion = (0,external_net_.isIP)(hostIp);
+	const hostIPVersion = (0,external_node_net_namespaceObject.isIP)(hostIp);
 
 	if (hostIPVersion === 4 && /^127\./.test(hostIp)) {
 		return true;
@@ -16819,7 +17009,7 @@ function isOriginPotentiallyTrustworthy(url) {
 	// 5. If origin's host component is "localhost" or falls within ".localhost", and the user agent conforms to the name resolution rules in [let-localhost-be-localhost], return "Potentially Trustworthy".
 	// We are returning FALSE here because we cannot ensure conformance to
 	// let-localhost-be-loalhost (https://tools.ietf.org/html/draft-west-let-localhost-be-localhost)
-	if (/^(.+\.)*localhost$/.test(url.host)) {
+	if (url.host === 'localhost' || url.host.endsWith('.localhost')) {
 		return false;
 	}
 
@@ -17040,7 +17230,6 @@ function parseReferrerPolicyFromHeader(headers) {
 }
 
 ;// CONCATENATED MODULE: ./node_modules/node-fetch/src/request.js
-
 /**
  * Request.js
  *
@@ -17056,12 +17245,13 @@ function parseReferrerPolicyFromHeader(headers) {
 
 
 
+
 const request_INTERNALS = Symbol('Request internals');
 
 /**
  * Check if `obj` is an instance of Request.
  *
- * @param  {*} obj
+ * @param  {*} object
  * @return {boolean}
  */
 const isRequest = object => {
@@ -17070,6 +17260,10 @@ const isRequest = object => {
 		typeof object[request_INTERNALS] === 'object'
 	);
 };
+
+const doBadDataWarn = (0,external_node_util_namespaceObject.deprecate)(() => {},
+	'.data is not a valid RequestInit property, use .body instead',
+	'https://github.com/node-fetch/node-fetch/issues/1000 (request)');
 
 /**
  * Request class
@@ -17093,14 +17287,20 @@ class Request extends Body {
 		}
 
 		if (parsedURL.username !== '' || parsedURL.password !== '') {
-			throw new TypeError(`${parsedURL} is an url with embedded credentails.`);
+			throw new TypeError(`${parsedURL} is an url with embedded credentials.`);
 		}
 
 		let method = init.method || input.method || 'GET';
-		method = method.toUpperCase();
+		if (/^(delete|get|head|options|post|put)$/i.test(method)) {
+			method = method.toUpperCase();
+		}
+
+		if (!isRequest(init) && 'data' in init) {
+			doBadDataWarn();
+		}
 
 		// eslint-disable-next-line no-eq-null, eqeqeq
-		if (((init.body != null || isRequest(input)) && input.body !== null) &&
+		if ((init.body != null || (isRequest(input) && input.body !== null)) &&
 			(method === 'GET' || method === 'HEAD')) {
 			throw new TypeError('Request with GET/HEAD method cannot have body');
 		}
@@ -17173,14 +17373,17 @@ class Request extends Body {
 		this.referrerPolicy = init.referrerPolicy || input.referrerPolicy || '';
 	}
 
+	/** @returns {string} */
 	get method() {
 		return this[request_INTERNALS].method;
 	}
 
+	/** @returns {string} */
 	get url() {
 		return (0,external_node_url_namespaceObject.format)(this[request_INTERNALS].parsedURL);
 	}
 
+	/** @returns {Headers} */
 	get headers() {
 		return this[request_INTERNALS].headers;
 	}
@@ -17189,6 +17392,7 @@ class Request extends Body {
 		return this[request_INTERNALS].redirect;
 	}
 
+	/** @returns {AbortSignal} */
 	get signal() {
 		return this[request_INTERNALS].signal;
 	}
@@ -17246,8 +17450,8 @@ Object.defineProperties(Request.prototype, {
 /**
  * Convert a Request to Node.js http request options.
  *
- * @param   Request  A Request instance
- * @return  Object   The options object to be passed to http.request
+ * @param {Request} request - A Request instance
+ * @return The options object to be passed to http.request
  */
 const getNodeRequestOptions = request => {
 	const {parsedURL} = request[request_INTERNALS];
@@ -17306,7 +17510,7 @@ const getNodeRequestOptions = request => {
 
 	// HTTP-network-or-cache fetch step 2.15
 	if (request.compress && !headers.has('Accept-Encoding')) {
-		headers.set('Accept-Encoding', 'gzip,deflate,br');
+		headers.set('Accept-Encoding', 'gzip, deflate, br');
 	}
 
 	let {agent} = request;
@@ -17336,6 +17540,7 @@ const getNodeRequestOptions = request => {
 	};
 
 	return {
+		/** @type {URL} */
 		parsedURL,
 		options
 	};
@@ -17353,6 +17558,8 @@ class AbortError extends FetchBaseError {
 	}
 }
 
+// EXTERNAL MODULE: ./node_modules/fetch-blob/from.js + 2 modules
+var from = __nccwpck_require__(2777);
 ;// CONCATENATED MODULE: ./node_modules/node-fetch/src/index.js
 /**
  * Index.js
@@ -17361,6 +17568,12 @@ class AbortError extends FetchBaseError {
  *
  * All spec algorithm step numbers are based on https://fetch.spec.whatwg.org/commit-snapshots/ae716822cb3a61843226cd090eefc6589446c1d2/.
  */
+
+
+
+
+
+
 
 
 
@@ -17434,7 +17647,7 @@ async function fetch(url, options_) {
 		};
 
 		// Send request
-		const request_ = send(parsedURL, options);
+		const request_ = send(parsedURL.toString(), options);
 
 		if (signal) {
 			signal.addEventListener('abort', abortAndFinalize);
@@ -17453,7 +17666,9 @@ async function fetch(url, options_) {
 		});
 
 		fixResponseChunkedTransferBadEnding(request_, error => {
-			response.body.destroy(error);
+			if (response && response.body) {
+				response.body.destroy(error);
+			}
 		});
 
 		/* c8 ignore next 18 */
@@ -17486,7 +17701,19 @@ async function fetch(url, options_) {
 				const location = headers.get('Location');
 
 				// HTTP fetch step 5.3
-				const locationURL = location === null ? null : new URL(location, request.url);
+				let locationURL = null;
+				try {
+					locationURL = location === null ? null : new URL(location, request.url);
+				} catch {
+					// error here can only be invalid URL in Location: header
+					// do not throw when options.redirect == manual
+					// let the user extract the errorneous redirect URL
+					if (request.redirect !== 'manual') {
+						reject(new FetchError(`uri requested responds with an invalid redirect URL: ${location}`, 'invalid-redirect'));
+						finalize();
+						return;
+					}
+				}
 
 				// HTTP fetch step 5.5
 				switch (request.redirect) {
@@ -17495,11 +17722,7 @@ async function fetch(url, options_) {
 						finalize();
 						return;
 					case 'manual':
-						// Node-fetch-specific step: make manual redirect a bit easier to use by setting the Location header value to the resolved URL.
-						if (locationURL !== null) {
-							headers.set('Location', locationURL);
-						}
-
+						// Nothing to do
 						break;
 					case 'follow': {
 						// HTTP-redirect fetch step 2
@@ -17529,6 +17752,21 @@ async function fetch(url, options_) {
 							referrer: request.referrer,
 							referrerPolicy: request.referrerPolicy
 						};
+
+						// when forwarding sensitive headers like "Authorization",
+						// "WWW-Authenticate", and "Cookie" to untrusted targets,
+						// headers will be ignored when following a redirect to a domain
+						// that is not a subdomain match or exact match of the initial domain.
+						// For example, a redirect from "foo.com" to either "foo.com" or "sub.foo.com"
+						// will forward the sensitive headers, but a redirect to "bar.com" will not.
+						// headers will also be ignored when following a redirect to a domain using
+						// a different protocol. For example, a redirect from "https://foo.com" to "http://foo.com"
+						// will not forward the sensitive headers
+						if (!isDomainOrSubdomain(request.url, locationURL) || !isSameProtocol(request.url, locationURL)) {
+							for (const name of ['authorization', 'www-authenticate', 'cookie', 'cookie2']) {
+								requestOptions.headers.delete(name);
+							}
+						}
 
 						// HTTP-redirect fetch step 9
 						if (response_.statusCode !== 303 && request.body && options_.body instanceof external_node_stream_namespaceObject.Readable) {
@@ -17568,8 +17806,13 @@ async function fetch(url, options_) {
 				});
 			}
 
-			let body = (0,external_node_stream_namespaceObject.pipeline)(response_, new external_node_stream_namespaceObject.PassThrough(), reject);
+			let body = (0,external_node_stream_namespaceObject.pipeline)(response_, new external_node_stream_namespaceObject.PassThrough(), error => {
+				if (error) {
+					reject(error);
+				}
+			});
 			// see https://github.com/nodejs/node/pull/29376
+			/* c8 ignore next 3 */
 			if (process.version < 'v12.10') {
 				response_.on('aborted', abortAndFinalize);
 			}
@@ -17613,7 +17856,11 @@ async function fetch(url, options_) {
 
 			// For gzip
 			if (codings === 'gzip' || codings === 'x-gzip') {
-				body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createGunzip(zlibOptions), reject);
+				body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createGunzip(zlibOptions), error => {
+					if (error) {
+						reject(error);
+					}
+				});
 				response = new Response(body, responseOptions);
 				resolve(response);
 				return;
@@ -17623,20 +17870,48 @@ async function fetch(url, options_) {
 			if (codings === 'deflate' || codings === 'x-deflate') {
 				// Handle the infamous raw deflate response from old servers
 				// a hack for old IIS and Apache servers
-				const raw = (0,external_node_stream_namespaceObject.pipeline)(response_, new external_node_stream_namespaceObject.PassThrough(), reject);
+				const raw = (0,external_node_stream_namespaceObject.pipeline)(response_, new external_node_stream_namespaceObject.PassThrough(), error => {
+					if (error) {
+						reject(error);
+					}
+				});
 				raw.once('data', chunk => {
 					// See http://stackoverflow.com/questions/37519828
-					body = (chunk[0] & 0x0F) === 0x08 ? (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createInflate(), reject) : (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createInflateRaw(), reject);
+					if ((chunk[0] & 0x0F) === 0x08) {
+						body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createInflate(), error => {
+							if (error) {
+								reject(error);
+							}
+						});
+					} else {
+						body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createInflateRaw(), error => {
+							if (error) {
+								reject(error);
+							}
+						});
+					}
 
 					response = new Response(body, responseOptions);
 					resolve(response);
+				});
+				raw.once('end', () => {
+					// Some old IIS servers return zero-length OK deflate responses, so
+					// 'data' is never emitted. See https://github.com/node-fetch/node-fetch/pull/903
+					if (!response) {
+						response = new Response(body, responseOptions);
+						resolve(response);
+					}
 				});
 				return;
 			}
 
 			// For br
 			if (codings === 'br') {
-				body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createBrotliDecompress(), reject);
+				body = (0,external_node_stream_namespaceObject.pipeline)(body, external_node_zlib_namespaceObject.createBrotliDecompress(), error => {
+					if (error) {
+						reject(error);
+					}
+				});
 				response = new Response(body, responseOptions);
 				resolve(response);
 				return;
@@ -17647,12 +17922,13 @@ async function fetch(url, options_) {
 			resolve(response);
 		});
 
-		writeToStream(request_, request);
+		// eslint-disable-next-line promise/prefer-await-to-then
+		writeToStream(request_, request).catch(reject);
 	});
 }
 
 function fixResponseChunkedTransferBadEnding(request, errorCallback) {
-	const LAST_CHUNK = Buffer.from('0\r\n\r\n');
+	const LAST_CHUNK = external_node_buffer_namespaceObject.Buffer.from('0\r\n\r\n');
 
 	let isChunkedTransfer = false;
 	let properLastChunkReceived = false;
@@ -17672,24 +17948,26 @@ function fixResponseChunkedTransferBadEnding(request, errorCallback) {
 			}
 		};
 
-		socket.prependListener('close', onSocketClose);
-
-		request.on('abort', () => {
-			socket.removeListener('close', onSocketClose);
-		});
-
-		socket.on('data', buf => {
-			properLastChunkReceived = Buffer.compare(buf.slice(-5), LAST_CHUNK) === 0;
+		const onData = buf => {
+			properLastChunkReceived = external_node_buffer_namespaceObject.Buffer.compare(buf.slice(-5), LAST_CHUNK) === 0;
 
 			// Sometimes final 0-length chunk and end of message code are in separate packets
 			if (!properLastChunkReceived && previousChunk) {
 				properLastChunkReceived = (
-					Buffer.compare(previousChunk.slice(-3), LAST_CHUNK.slice(0, 3)) === 0 &&
-					Buffer.compare(buf.slice(-2), LAST_CHUNK.slice(3)) === 0
+					external_node_buffer_namespaceObject.Buffer.compare(previousChunk.slice(-3), LAST_CHUNK.slice(0, 3)) === 0 &&
+					external_node_buffer_namespaceObject.Buffer.compare(buf.slice(-2), LAST_CHUNK.slice(3)) === 0
 				);
 			}
 
 			previousChunk = buf;
+		};
+
+		socket.prependListener('close', onSocketClose);
+		socket.on('data', onData);
+
+		request.on('close', () => {
+			socket.removeListener('close', onSocketClose);
+			socket.removeListener('data', onData);
 		});
 	});
 }
