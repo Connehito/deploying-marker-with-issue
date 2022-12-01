@@ -22,17 +22,15 @@ const issue_update_1 = __nccwpck_require__(8874);
 const label_get_1 = __nccwpck_require__(7646);
 const label_1 = __nccwpck_require__(6543);
 const label_create_1 = __nccwpck_require__(133);
-const error_1 = __nccwpck_require__(4966);
-const messages_1 = __nccwpck_require__(4585);
 const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     const { repoOwner, repoName, issueNumber, exitWithError, actorId } = input;
-    const attached = yield (0, label_1.attachedMarkerOnIssue)(repoOwner, repoName, issueNumber);
-    if (attached) {
-        if (exitWithError) {
-            (0, error_1.onError)((0, messages_1.getMessage)('error:label_already_attached'));
-        }
-        return;
-    }
+    // const attached = await attachedMarkerOnIssue(repoOwner, repoName, issueNumber)
+    // if (attached) {
+    //   if (exitWithError) {
+    //     onError(getMessage('error:label_already_attached'))
+    //   }
+    //   return
+    // }
     const beforeIssueData = yield (0, issue_get_1.getIssue)({ repoOwner, repoName, issueNumber });
     const { issue } = beforeIssueData.data.organization.repository;
     const labels = (yield (0, label_get_1.getLabels)({ repoOwner, repoName, labelName: label_1.LabelName }))
@@ -47,12 +45,15 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
         });
         labelId = createLabelResult.node_id;
     }
-    yield (0, issue_update_1.updateIssue)({
-        issueId: issue.id,
-        body: issue.body,
-        assigneeIds: [actorId],
-        labelIds: [labelId]
-    });
+    for (let i = 0; i < 100; i++) {
+        console.debug('###', i);
+        yield (0, issue_update_1.updateIssue)({
+            issueId: issue.id,
+            body: issue.body,
+            assigneeIds: [actorId],
+            labelIds: [labelId]
+        });
+    }
 });
 exports.attachMarker = attachMarker;
 
@@ -280,29 +281,6 @@ exports.onWarning = onWarning;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -314,18 +292,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getInput = void 0;
-const core = __importStar(__nccwpck_require__(2186));
 const user_get_1 = __nccwpck_require__(2072);
-const env_1 = __nccwpck_require__(5284);
 const getInput = () => __awaiter(void 0, void 0, void 0, function* () {
-    const action = core.getInput('action', { required: true });
-    const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
-    const exitWithError = core.getBooleanInput('exit-with-error', {
-        required: false
-    });
+    const action = 'attach-marker'; //core.getInput('action', {required: true})
+    const issueNumber = 28; //parseInt( core.getInput('issue-number', {required: true}), 10 )
+    const exitWithError = false; // core.getBooleanInput('exit-with-error', { required: false })
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
-    const [repoOwner, repoName] = (0, env_1.getEnvVar)('GITHUB_REPOSITORY').split('/');
-    const actor = (0, env_1.getEnvVar)('GITHUB_ACTOR');
+    const [repoOwner, repoName] = ['Connehito', 'deploying-marker-with-issue']; // getEnvVar('GITHUB_REPOSITORY').split('/')
+    const actor = 'mryhryki'; // getEnvVar('GITHUB_ACTOR')
     const { id: actorId } = (yield (0, user_get_1.getUser)({ login: actor })).data.user;
     return {
         action,
@@ -638,7 +612,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.updateIssue = void 0;
 const common_1 = __nccwpck_require__(9465);
 const updateIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
-    yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!, $assigneeIds: [ID!] $labelIds: [ID!]) {
+    const response = yield (0, common_1.fetchGitHubGraphQL)(`mutation ($issueId: ID!, $body: String!, $assigneeIds: [ID!] $labelIds: [ID!]) {
         updateIssue(input: {id: $issueId, body: $body, assigneeIds: $assigneeIds, labelIds: $labelIds}) {
           clientMutationId
         }
