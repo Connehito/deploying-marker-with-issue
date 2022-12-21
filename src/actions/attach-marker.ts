@@ -37,7 +37,7 @@ export const attachMarker = async (input: Input): Promise<void> => {
   await updateIssue({
     issueId: issue.id,
     body: issue.body,
-    assigneeIds: [actorId],
+    assigneeIds: actorId != null ? [actorId] : [],
     labelIds: [labelId]
   })
 }

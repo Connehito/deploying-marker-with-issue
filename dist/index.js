@@ -50,7 +50,7 @@ const attachMarker = (input) => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, issue_update_1.updateIssue)({
         issueId: issue.id,
         body: issue.body,
-        assigneeIds: [actorId],
+        assigneeIds: actorId != null ? [actorId] : [],
         labelIds: [labelId]
     });
 });
@@ -317,6 +317,7 @@ exports.getInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const user_get_1 = __nccwpck_require__(2072);
 const env_1 = __nccwpck_require__(5284);
+const IgnoreActors = ['dependabot[bot]'];
 const getInput = () => __awaiter(void 0, void 0, void 0, function* () {
     const action = core.getInput('action', { required: true });
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }), 10);
@@ -326,7 +327,9 @@ const getInput = () => __awaiter(void 0, void 0, void 0, function* () {
     // https://docs.github.com/en/actions/learn-github-actions/environment-variables
     const [repoOwner, repoName] = (0, env_1.getEnvVar)('GITHUB_REPOSITORY').split('/');
     const actor = (0, env_1.getEnvVar)('GITHUB_ACTOR');
-    const { id: actorId } = (yield (0, user_get_1.getUser)({ login: actor })).data.user;
+    const actorId = IgnoreActors.includes(actor)
+        ? null
+        : (yield (0, user_get_1.getUser)({ login: actor })).data.user.id;
     return {
         action,
         issueNumber,

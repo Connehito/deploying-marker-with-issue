@@ -9,8 +9,10 @@ export interface Input {
   repoOwner: string
   repoName: string
   actor: string
-  actorId: string
+  actorId: string | null
 }
+
+const IgnoreActors = ['dependabot[bot]']
 
 export const getInput = async (): Promise<Input> => {
   const action = core.getInput('action', {required: true})
@@ -25,7 +27,9 @@ export const getInput = async (): Promise<Input> => {
   // https://docs.github.com/en/actions/learn-github-actions/environment-variables
   const [repoOwner, repoName] = getEnvVar('GITHUB_REPOSITORY').split('/')
   const actor = getEnvVar('GITHUB_ACTOR')
-  const {id: actorId} = (await getUser({login: actor})).data.user
+  const actorId = IgnoreActors.includes(actor)
+    ? null
+    : (await getUser({login: actor})).data.user.id
 
   return {
     action,
