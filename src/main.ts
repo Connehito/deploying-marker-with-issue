@@ -1,4 +1,3 @@
-import * as core from '@actions/core'
 import {getInput} from './common/input'
 import {attachMarker} from './actions/attach-marker'
 import {checkMarkerAttached} from './actions/check-marker-attached'
