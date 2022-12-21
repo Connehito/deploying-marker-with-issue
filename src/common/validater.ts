@@ -1,5 +1,6 @@
 import Ajv from 'ajv'
 import {FromSchema, JSONSchema} from 'json-schema-to-ts'
+import {onWarning} from './error'
 
 const ajv = new Ajv({allErrors: true})
 export const buildValidator = <T extends JSONSchema>(
@@ -10,6 +11,7 @@ export const buildValidator = <T extends JSONSchema>(
     if (validate(params)) {
       return params as FromSchema<T>
     }
+    onWarning(JSON.stringify(params))
     throw new Error(`Schema Error: ${JSON.stringify(validate.errors)}`)
   }
 }

@@ -425,6 +425,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildValidator = void 0;
 const ajv_1 = __importDefault(__nccwpck_require__(2426));
+const error_1 = __nccwpck_require__(4966);
 const ajv = new ajv_1.default({ allErrors: true });
 const buildValidator = (schema) => {
     const validate = ajv.compile(schema);
@@ -432,6 +433,7 @@ const buildValidator = (schema) => {
         if (validate(params)) {
             return params;
         }
+        (0, error_1.onWarning)(JSON.stringify(params));
         throw new Error(`Schema Error: ${JSON.stringify(validate.errors)}`);
     };
 };
