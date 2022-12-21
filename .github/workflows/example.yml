@@ -31,13 +31,13 @@ jobs:
       - name: Sleep 20s
         run: sleep 20
 
-      - uses: Connehito/deploying-marker-with-issue@main
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          action: "check-marker-detached-or-assigned-actor"
-          issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
-          exit-with-error: true # true = exit with error when the marker is already exists and not assigned actor
+#     - uses: Connehito/deploying-marker-with-issue@main
+#       env:
+#         GITHUB_TOKEN: ${{ github.token }}
+#       with:
+#         action: "check-marker-detached-or-assigned-actor"
+#         issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
+#         exit-with-error: true # true = exit with error when the marker is already exists and not assigned actor
 
       - uses: Connehito/deploying-marker-with-issue@main
         env:
