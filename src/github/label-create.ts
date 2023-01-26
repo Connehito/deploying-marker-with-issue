@@ -1,50 +1,49 @@
+import Ajv, {JSONSchemaType} from 'ajv'
 import {fetchGitHubApiV3} from './common'
-import {FromSchema} from 'json-schema-to-ts'
 import {DefaultLabelColor, DefaultLabelDescription} from '../common/label'
-import {buildValidator} from '../common/validater'
+import {onWarning} from '../common/error'
+
+interface CreateLabelResultType {
+  id: number
+  node_id: string
+  url: string
+  name: string
+  description: string
+  color: string
+  default: boolean
+}
 
 // https://docs.github.com/ja/rest/issues/labels#create-a-label
-const Schema = {
-  title: 'Label',
-  description:
-    'Color-coded labels help you categorize and filter your issues (just like labels in Gmail).',
+const CreateLabelResultSchema: JSONSchemaType<CreateLabelResultType> = {
   type: 'object',
   properties: {
     id: {
-      type: 'integer',
-      examples: [208045946]
+      type: 'integer'
     },
     node_id: {
-      type: 'string',
-      examples: ['MDU6TGFiZWwyMDgwNDU5NDY=']
+      type: 'string'
     },
     url: {
-      description: 'URL for the label',
-      type: 'string',
-      examples: ['https://api.github.com/repositories/42/labels/bug']
+      type: 'string'
     },
     name: {
-      description: 'The name of the label.',
-      type: 'string',
-      examples: ['bug']
+      type: 'string'
     },
     description: {
-      type: ['string', 'null'],
-      examples: ["Something isn't working"]
+      type: 'string'
     },
     color: {
-      description:
-        '6-character hex code, without the leading #, identifying the color',
-      type: 'string',
-      examples: ['FFFFFF']
+      type: 'string'
     },
     default: {
-      type: 'boolean',
-      examples: [true]
+      type: 'boolean'
     }
   },
-  required: ['id', 'node_id', 'url', 'name', 'description', 'color', 'default']
-} as const
+  required: ['id', 'node_id', 'url', 'name', 'color', 'default']
+}
+const validateCreateLabelResultSchema = new Ajv().compile(
+  CreateLabelResultSchema
+)
 
 interface Args {
   repoOwner: string
@@ -56,9 +55,9 @@ interface Args {
 
 export const createLabel = async (
   args: Args
-): Promise<FromSchema<typeof Schema>> => {
+): Promise<CreateLabelResultType> => {
   const {repoOwner, repoName, labelName, labelColor, labelDescription} = args
-  const data = await fetchGitHubApiV3(
+  const result = await fetchGitHubApiV3(
     'POST',
     `/repos/${repoOwner}/${repoName}/labels`,
     JSON.stringify({
@@ -67,5 +66,11 @@ export const createLabel = async (
       description: labelDescription ?? DefaultLabelDescription
     })
   )
-  return buildValidator(Schema)(data)
+  if (validateCreateLabelResultSchema(result)) {
+    return result
+  }
+  onWarning(`GitHub APIv4 Result: ${JSON.stringify(result)}`)
+  throw new Error(
+    `Schema Error: ${JSON.stringify(validateCreateLabelResultSchema.errors)}`
+  )
 }
