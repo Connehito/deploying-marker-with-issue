@@ -1,8 +1,33 @@
-import {FromSchema} from 'json-schema-to-ts'
-import {buildValidator} from '../common/validater'
+import Ajv, {JSONSchemaType} from 'ajv'
 import {fetchGitHubGraphQL} from './common'
+import {onWarning} from '../common/error'
 
-const IssueSchema = {
+interface IssueType {
+  data: {
+    organization: {
+      repository: {
+        issue: {
+          id: string
+          body: string
+          assignees: {
+            nodes: {
+              id: string
+              login: string
+            }[]
+          }
+          labels: {
+            nodes: {
+              id: string
+              name: string
+            }[]
+          }
+        }
+      }
+    }
+  }
+}
+
+const IssueSchema: JSONSchemaType<IssueType> = {
   type: 'object',
   additionalProperties: false,
   required: ['data'],
@@ -76,7 +101,9 @@ const IssueSchema = {
       }
     }
   }
-} as const
+}
+
+const validateIssueType = new Ajv().compile(IssueSchema)
 
 interface Args {
   repoOwner: string
@@ -84,9 +111,7 @@ interface Args {
   issueNumber: number
 }
 
-export const getIssue = async (
-  args: Args
-): Promise<FromSchema<typeof IssueSchema>> => {
+export const getIssue = async (args: Args): Promise<IssueType> => {
   const result = await fetchGitHubGraphQL(
     `query ($repoOwner: String!, $repoName: String!, $issueNumber: Int!) {
       organization(login: $repoOwner) {
@@ -112,5 +137,9 @@ export const getIssue = async (
     }`,
     {...args}
   )
-  return buildValidator(IssueSchema)(result)
+  if (validateIssueType(result)) {
+    return result
+  }
+  onWarning(`GitHub APIv4 Result: ${JSON.stringify(result)}`)
+  throw new Error(`Schema Error: ${JSON.stringify(validateIssueType.errors)}`)
 }
