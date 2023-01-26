@@ -1,8 +1,23 @@
+import Ajv, {JSONSchemaType} from 'ajv'
 import {fetchGitHubGraphQL} from './common'
-import {FromSchema} from 'json-schema-to-ts'
-import {buildValidator} from '../common/validater'
+import {onWarning} from '../common/error'
 
-export const Schema = {
+interface LabelType {
+  data: {
+    organization: {
+      repository: {
+        labels: {
+          nodes: {
+            id: string
+            name: string
+          }[]
+        }
+      }
+    }
+  }
+}
+
+export const LabelSchema: JSONSchemaType<LabelType> = {
   type: 'object',
   additionalProperties: false,
   required: ['data'],
@@ -48,7 +63,9 @@ export const Schema = {
       }
     }
   }
-} as const
+}
+
+const validateLabelType = new Ajv().compile(LabelSchema)
 
 interface Args {
   repoOwner: string
@@ -56,9 +73,7 @@ interface Args {
   labelName: string
 }
 
-export const getLabels = async (
-  args: Args
-): Promise<FromSchema<typeof Schema>> => {
+export const getLabels = async (args: Args): Promise<LabelType> => {
   const result = await fetchGitHubGraphQL(
     `query ($repoOwner: String!, $repoName: String!, $labelName: String!) {
        organization(login: $repoOwner) {
@@ -74,5 +89,9 @@ export const getLabels = async (
      }`,
     {...args}
   )
-  return buildValidator(Schema)(result)
+  if (validateLabelType(result)) {
+    return result
+  }
+  onWarning(`GitHub APIv4 Result: ${JSON.stringify(result)}`)
+  throw new Error(`Schema Error: ${JSON.stringify(validateLabelType.errors)}`)
 }
