@@ -417,34 +417,6 @@ const Messages = {
 
 /***/ }),
 
-/***/ 5878:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildValidator = void 0;
-const ajv_1 = __importDefault(__nccwpck_require__(2426));
-const error_1 = __nccwpck_require__(4966);
-const ajv = new ajv_1.default({ allErrors: true });
-const buildValidator = (schema) => {
-    const validate = ajv.compile(schema);
-    return (params) => {
-        if (validate(params)) {
-            return params;
-        }
-        (0, error_1.onWarning)(JSON.stringify(params));
-        throw new Error(`Schema Error: ${JSON.stringify(validate.errors)}`);
-    };
-};
-exports.buildValidator = buildValidator;
-
-
-/***/ }),
-
 /***/ 9465:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -524,10 +496,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getIssue = void 0;
-const validater_1 = __nccwpck_require__(5878);
+const ajv_1 = __importDefault(__nccwpck_require__(2426));
 const common_1 = __nccwpck_require__(9465);
+const error_1 = __nccwpck_require__(4966);
 const IssueSchema = {
     type: 'object',
     additionalProperties: false,
@@ -603,6 +579,7 @@ const IssueSchema = {
         }
     }
 };
+const validateIssueType = new ajv_1.default().compile(IssueSchema);
 const getIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($repoOwner: String!, $repoName: String!, $issueNumber: Int!) {
       organization(login: $repoOwner) {
@@ -626,7 +603,11 @@ const getIssue = (args) => __awaiter(void 0, void 0, void 0, function* () {
         }
       }
     }`, Object.assign({}, args));
-    return (0, validater_1.buildValidator)(IssueSchema)(result);
+    if (validateIssueType(result)) {
+        return result;
+    }
+    (0, error_1.onWarning)(`GitHub APIv4 Result: ${JSON.stringify(result)}`);
+    throw new Error(`Schema Error: ${JSON.stringify(validateIssueType.errors)}`);
 });
 exports.getIssue = getIssue;
 
@@ -676,59 +657,56 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createLabel = void 0;
+const ajv_1 = __importDefault(__nccwpck_require__(2426));
 const common_1 = __nccwpck_require__(9465);
 const label_1 = __nccwpck_require__(6543);
-const validater_1 = __nccwpck_require__(5878);
+const error_1 = __nccwpck_require__(4966);
 // https://docs.github.com/ja/rest/issues/labels#create-a-label
-const Schema = {
-    title: 'Label',
-    description: 'Color-coded labels help you categorize and filter your issues (just like labels in Gmail).',
+const CreateLabelResultSchema = {
     type: 'object',
     properties: {
         id: {
-            type: 'integer',
-            examples: [208045946]
+            type: 'integer'
         },
         node_id: {
-            type: 'string',
-            examples: ['MDU6TGFiZWwyMDgwNDU5NDY=']
+            type: 'string'
         },
         url: {
-            description: 'URL for the label',
-            type: 'string',
-            examples: ['https://api.github.com/repositories/42/labels/bug']
+            type: 'string'
         },
         name: {
-            description: 'The name of the label.',
-            type: 'string',
-            examples: ['bug']
+            type: 'string'
         },
         description: {
-            type: ['string', 'null'],
-            examples: ["Something isn't working"]
+            type: 'string'
         },
         color: {
-            description: '6-character hex code, without the leading #, identifying the color',
-            type: 'string',
-            examples: ['FFFFFF']
+            type: 'string'
         },
         default: {
-            type: 'boolean',
-            examples: [true]
+            type: 'boolean'
         }
     },
-    required: ['id', 'node_id', 'url', 'name', 'description', 'color', 'default']
+    required: ['id', 'node_id', 'url', 'name', 'color', 'default']
 };
+const validateCreateLabelResultSchema = new ajv_1.default().compile(CreateLabelResultSchema);
 const createLabel = (args) => __awaiter(void 0, void 0, void 0, function* () {
     const { repoOwner, repoName, labelName, labelColor, labelDescription } = args;
-    const data = yield (0, common_1.fetchGitHubApiV3)('POST', `/repos/${repoOwner}/${repoName}/labels`, JSON.stringify({
+    const result = yield (0, common_1.fetchGitHubApiV3)('POST', `/repos/${repoOwner}/${repoName}/labels`, JSON.stringify({
         name: labelName,
         color: labelColor !== null && labelColor !== void 0 ? labelColor : label_1.DefaultLabelColor,
         description: labelDescription !== null && labelDescription !== void 0 ? labelDescription : label_1.DefaultLabelDescription
     }));
-    return (0, validater_1.buildValidator)(Schema)(data);
+    if (validateCreateLabelResultSchema(result)) {
+        return result;
+    }
+    (0, error_1.onWarning)(`GitHub APIv4 Result: ${JSON.stringify(result)}`);
+    throw new Error(`Schema Error: ${JSON.stringify(validateCreateLabelResultSchema.errors)}`);
 });
 exports.createLabel = createLabel;
 
@@ -749,11 +727,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getLabels = exports.Schema = void 0;
+exports.getLabels = exports.LabelSchema = void 0;
+const ajv_1 = __importDefault(__nccwpck_require__(2426));
 const common_1 = __nccwpck_require__(9465);
-const validater_1 = __nccwpck_require__(5878);
-exports.Schema = {
+const error_1 = __nccwpck_require__(4966);
+exports.LabelSchema = {
     type: 'object',
     additionalProperties: false,
     required: ['data'],
@@ -800,6 +782,7 @@ exports.Schema = {
         }
     }
 };
+const validateLabelType = new ajv_1.default().compile(exports.LabelSchema);
 const getLabels = (args) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($repoOwner: String!, $repoName: String!, $labelName: String!) {
        organization(login: $repoOwner) {
@@ -813,7 +796,11 @@ const getLabels = (args) => __awaiter(void 0, void 0, void 0, function* () {
          }
        }
      }`, Object.assign({}, args));
-    return (0, validater_1.buildValidator)(exports.Schema)(result);
+    if (validateLabelType(result)) {
+        return result;
+    }
+    (0, error_1.onWarning)(`GitHub APIv4 Result: ${JSON.stringify(result)}`);
+    throw new Error(`Schema Error: ${JSON.stringify(validateLabelType.errors)}`);
 });
 exports.getLabels = getLabels;
 
@@ -834,9 +821,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getUser = void 0;
-const validater_1 = __nccwpck_require__(5878);
+const ajv_1 = __importDefault(__nccwpck_require__(2426));
+const error_1 = __nccwpck_require__(4966);
 const common_1 = __nccwpck_require__(9465);
 const UserSchema = {
     type: 'object',
@@ -862,13 +853,18 @@ const UserSchema = {
         }
     }
 };
+const validateUserType = new ajv_1.default().compile(UserSchema);
 const getUser = (args) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield (0, common_1.fetchGitHubGraphQL)(`query ($login: String!) {
        user(login: $login) {
          id
        }
      }`, Object.assign({}, args));
-    return (0, validater_1.buildValidator)(UserSchema)(result);
+    if (validateUserType(result)) {
+        return result;
+    }
+    (0, error_1.onWarning)(`GitHub APIv4 Result: ${JSON.stringify(result)}`);
+    throw new Error(`Schema Error: ${JSON.stringify(validateUserType.errors)}`);
 });
 exports.getUser = getUser;
 
@@ -5163,7 +5159,7 @@ function checkContextTypes(it, types) {
             strictTypesError(it, `type "${t}" not allowed by context "${it.dataTypes.join(",")}"`);
         }
     });
-    it.dataTypes = it.dataTypes.filter((t) => includesType(types, t));
+    narrowSchemaTypes(it, types);
 }
 function checkMultipleTypes(it, ts) {
     if (ts.length > 1 && !(ts.length === 2 && ts.includes("null"))) {
@@ -5187,6 +5183,16 @@ function hasApplicableType(schTs, kwdT) {
 }
 function includesType(ts, t) {
     return ts.includes(t) || (t === "integer" && ts.includes("number"));
+}
+function narrowSchemaTypes(it, withTypes) {
+    const ts = [];
+    for (const t of it.dataTypes) {
+        if (includesType(withTypes, t))
+            ts.push(t);
+        else if (withTypes.includes("integer") && t === "number")
+            ts.push("integer");
+    }
+    it.dataTypes = ts;
 }
 function strictTypesError(it, msg) {
     const schemaPath = it.schemaEnv.baseId + it.errSchemaPath;
