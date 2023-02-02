@@ -87,3 +87,19 @@ It is intended to be used at the end of a deployment.
     issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
     exit-with-error: false # true = exit with error when the marker is not exists
 ```
+
+### 5. Check marker detached or assigned actor
+
+Checks the Issue has not `Deploying` label or assigned actor.
+If the issue has a `Deploying` label or assigned user who is not the actor, and `exit-with-error: true' is specified, an error is raised.
+For example, if you want to run consecutive deployments.
+
+```yaml
+- uses: Connehito/deploying-marker-with-issue@main
+  env:
+    GITHUB_TOKEN: ${{ github.token }}
+  with:
+    action: "check-marker-detached-or-assigned-actor"
+    issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
+    exit-with-error: true # true = exit with error when the marker is already exists and assigned a user who is not the actor
+```
