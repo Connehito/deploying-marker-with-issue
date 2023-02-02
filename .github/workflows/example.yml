@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      # Expect issue status at started.
+      # - Label   : (None)
+      # - Assignee: (None)
+
       - uses: Connehito/deploying-marker-with-issue@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -27,6 +31,10 @@ jobs:
           action: "attach-marker"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: true # true = exit with error when the marker is already exists
+
+      # Issue status at this time
+      # - Label   : Deploying
+      # - Assignee: $ACTOR
 
       - uses: Connehito/deploying-marker-with-issue@main
         env:
@@ -51,6 +59,10 @@ jobs:
           action: "detach-marker"
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           exit-with-error: false # true = exit with error when the marker is not exists
+
+      # Issue status at this time
+      # - Label   : (None)
+      # - Assignee: (None)
 
       - name: Set ref link
         run: |
