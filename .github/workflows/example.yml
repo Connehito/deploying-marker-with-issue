@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v3
         with:
           issue-number: ${{ env.DEPLOYMENT_RECORD_ISSUE_NUMBER }}
           body: |
